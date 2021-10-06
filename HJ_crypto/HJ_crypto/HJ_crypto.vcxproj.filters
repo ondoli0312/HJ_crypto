@@ -16,18 +16,45 @@
     <Filter Include="소스 파일\LEA">
       <UniqueIdentifier>{3c8b72c6-303c-4a47-81ef-7455b7440be0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\ARIA">
+      <UniqueIdentifier>{506b127d-eaa5-4b87-94f4-504614745c37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\SHA-2 Family">
+      <UniqueIdentifier>{cc4a01a5-4055-4339-99b1-29f1f5595078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\src">
+      <UniqueIdentifier>{f82ded53-6d74-44c6-bbe4-69ebc3248d6b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\src</Filter>
     </ClCompile>
-    <ClCompile Include="LEA.c">
+    <ClCompile Include="src.c">
+      <Filter>소스 파일\src</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA-256 core.c">
+      <Filter>소스 파일\SHA-2 Family</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA-256.c">
+      <Filter>소스 파일\SHA-2 Family</Filter>
+    </ClCompile>
+    <ClCompile Include="ARIA core.c">
+      <Filter>소스 파일\ARIA</Filter>
+    </ClCompile>
+    <ClCompile Include="LEA core.c">
       <Filter>소스 파일\LEA</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LEA.h">
       <Filter>소스 파일\LEA</Filter>
+    </ClInclude>
+    <ClInclude Include="type.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SHA_2_Family.h">
+      <Filter>소스 파일\SHA-2 Family</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

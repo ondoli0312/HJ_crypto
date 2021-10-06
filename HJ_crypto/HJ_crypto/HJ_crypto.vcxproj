@@ -139,11 +139,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="LEA.c" />
+    <ClCompile Include="ARIA core.c" />
+    <ClCompile Include="LEA core.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="SHA-256 core.c" />
+    <ClCompile Include="SHA-256.c" />
+    <ClCompile Include="src.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LEA.h" />
+    <ClInclude Include="SHA_2_Family.h" />
+    <ClInclude Include="type.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
