@@ -540,7 +540,7 @@ RET LEA_roundkeyGen(LEA_KEY* key, const uint8_t* mk, uint32_t mk_len)
 	return SUCCESS;
 }
 
-RET LEA_encryption(uint8_t* ct, const uint8_t* pt, const LEA_KEY* key)
+RET LEA_encryption(const uint8_t* pt, const LEA_KEY* key, uint8_t* ct)
 {
 	RET ret = FAILURE;
 	unsigned int X0, X1, X2, X3;
@@ -672,7 +672,7 @@ RET LEA_encryption(uint8_t* ct, const uint8_t* pt, const LEA_KEY* key)
 	return ret;
 }
 
-RET LEA_decryption(unsigned char* pt, const unsigned char* ct, const LEA_KEY* key)
+RET LEA_decryption(uint8_t* pt, const LEA_KEY* key, const uint8_t* ct)
 {
 	RET ret = FAILURE;
 	unsigned int X0, X1, X2, X3;

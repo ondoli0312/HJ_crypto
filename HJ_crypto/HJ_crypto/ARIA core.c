@@ -1,9 +1,9 @@
 #include "type.h"
+#include "ARIA.h"
 /*
 	This code is an open source code provided by KISA
 	url : https://seed.kisa.or.kr/kisa/Board/19/detailView.do
 */
-
 /*
  *
  *
@@ -128,6 +128,8 @@ void DL(const uint8_t* i, uint8_t* o)
 	o[6] = i[2] ^ i[9] ^ i[12] ^ T;
 	o[8] = i[1] ^ i[4] ^ i[15] ^ T;
 	o[13] = i[3] ^ i[6] ^ i[8] ^ T;
+
+	T = 0;
 }
 
 // Right-rotate 128 bit source string s by n bits and XOR it to target string t
@@ -140,16 +142,18 @@ void RotXOR(const uint8_t* s, int n, uint8_t* t)
 		t[(q + i) % 16] ^= (s[i] >> n);
 		if (n != 0) t[(q + i + 1) % 16] ^= (s[i] << (8 - n));
 	}
+	i = 0; q = 0;
 }
 
 // Encryption round key generation rountine
 // w0 : master key, e : encryption round keys
-int EncKeySetup(const uint8_t* w0, uint8_t* e, int keyBits) {
+RET ARIA_EncKeySetup(const uint8_t* w0, int keyBits, ARIA_KEY* key) {
 	int  i, R = (keyBits + 256) / 32, q;
 	uint8_t t[16], w1[16], w2[16], w3[16];
-
+	key->rounds = R;
 	q = (keyBits - 128) / 64;
-	for (i = 0; i < 16; i++) t[i] = S[i % 4][KRK[q][i] ^ w0[i]];
+	for (i = 0; i < 16; i++) 
+		t[i] = S[i % 4][KRK[q][i] ^ w0[i]];
 	DL(t, w1);
 	if (R == 14)
 		for (i = 0; i < 8; i++) w1[i] ^= w0[16 + i];
@@ -166,50 +170,56 @@ int EncKeySetup(const uint8_t* w0, uint8_t* e, int keyBits) {
 	DL(t, w3);
 	for (i = 0; i < 16; i++) w3[i] ^= w1[i];
 
-	for (i = 0; i < 16 * (R + 1); i++) e[i] = 0;
+	for (i = 0; i < 16 * (R + 1); i++) key->roundkeys[i] = 0;
 
-	RotXOR(w0, 0, e); RotXOR(w1, 19, e);
-	RotXOR(w1, 0, e + 16); RotXOR(w2, 19, e + 16);
-	RotXOR(w2, 0, e + 32); RotXOR(w3, 19, e + 32);
-	RotXOR(w3, 0, e + 48); RotXOR(w0, 19, e + 48);
-	RotXOR(w0, 0, e + 64); RotXOR(w1, 31, e + 64);
-	RotXOR(w1, 0, e + 80); RotXOR(w2, 31, e + 80);
-	RotXOR(w2, 0, e + 96); RotXOR(w3, 31, e + 96);
-	RotXOR(w3, 0, e + 112); RotXOR(w0, 31, e + 112);
-	RotXOR(w0, 0, e + 128); RotXOR(w1, 67, e + 128);
-	RotXOR(w1, 0, e + 144); RotXOR(w2, 67, e + 144);
-	RotXOR(w2, 0, e + 160); RotXOR(w3, 67, e + 160);
-	RotXOR(w3, 0, e + 176); RotXOR(w0, 67, e + 176);
-	RotXOR(w0, 0, e + 192); RotXOR(w1, 97, e + 192);
+	RotXOR(w0, 0, key->roundkeys); RotXOR(w1, 19, key->roundkeys);
+	RotXOR(w1, 0, key->roundkeys + 16); RotXOR(w2, 19, key->roundkeys + 16);
+	RotXOR(w2, 0, key->roundkeys + 32); RotXOR(w3, 19, key->roundkeys + 32);
+	RotXOR(w3, 0, key->roundkeys + 48); RotXOR(w0, 19, key->roundkeys + 48);
+	RotXOR(w0, 0, key->roundkeys + 64); RotXOR(w1, 31, key->roundkeys + 64);
+	RotXOR(w1, 0, key->roundkeys + 80); RotXOR(w2, 31, key->roundkeys + 80);
+	RotXOR(w2, 0, key->roundkeys + 96); RotXOR(w3, 31, key->roundkeys + 96);
+	RotXOR(w3, 0, key->roundkeys + 112); RotXOR(w0, 31, key->roundkeys + 112);
+	RotXOR(w0, 0, key->roundkeys + 128); RotXOR(w1, 67, key->roundkeys + 128);
+	RotXOR(w1, 0, key->roundkeys + 144); RotXOR(w2, 67, key->roundkeys + 144);
+	RotXOR(w2, 0, key->roundkeys + 160); RotXOR(w3, 67, key->roundkeys + 160);
+	RotXOR(w3, 0, key->roundkeys + 176); RotXOR(w0, 67, key->roundkeys + 176);
+	RotXOR(w0, 0, key->roundkeys + 192); RotXOR(w1, 97, key->roundkeys + 192);
 	if (R > 12) {
-		RotXOR(w1, 0, e + 208); RotXOR(w2, 97, e + 208);
-		RotXOR(w2, 0, e + 224); RotXOR(w3, 97, e + 224);
+		RotXOR(w1, 0, key->roundkeys + 208); RotXOR(w2, 97, key->roundkeys + 208);
+		RotXOR(w2, 0, key->roundkeys + 224); RotXOR(w3, 97, key->roundkeys + 224);
 	}
 	if (R > 14) {
-		RotXOR(w3, 0, e + 240); RotXOR(w0, 97, e + 240);
-		RotXOR(w0, 0, e + 256); RotXOR(w1, 109, e + 256);
+		RotXOR(w3, 0, key->roundkeys + 240); RotXOR(w0, 97, key->roundkeys + 240);
+		RotXOR(w0, 0, key->roundkeys + 256); RotXOR(w1, 109, key->roundkeys + 256);
 	}
-	return R;
+	return SUCCESS;
 }
 
 // Decryption round key generation rountine
 // w0 : maskter key, d : decryption round keys
-int DecKeySetup(const uint8_t* w0, uint8_t* d, int keyBits) {
+RET ARIA_DecKeySetup(const uint8_t* w0, int keyBits, ARIA_KEY* key) {
 	int  i, j, R;
 	uint8_t t[16];
-
-	R = EncKeySetup(w0, d, keyBits);
+	RET ret = FAILURE;
+	R = R = (keyBits + 256) / 32;
+	key->rounds = R;
+	ret = ARIA_EncKeySetup(w0, key->roundkeys, keyBits);
+	if (ret == FAILURE)
+		return FAILURE;
 	for (j = 0; j < 16; j++) {
-		t[j] = d[j];
-		d[j] = d[16 * R + j];
-		d[16 * R + j] = t[j];
+		t[j] = key->roundkeys + j;
+		*(key->roundkeys + j) = *(key->roundkeys + (16 * R + j));
+		*(key->roundkeys + (16 * R + j)) = t[j];
 	}
 	for (i = 1; i <= R / 2; i++) {
-		DL(d + i * 16, t);
-		DL(d + (R - i) * 16, d + i * 16);
-		for (j = 0; j < 16; j++) d[(R - i) * 16 + j] = t[j];
+		DL(key->roundkeys + i * 16, t);
+		DL(key->roundkeys + (R - i) * 16, key->roundkeys + i * 16);
+		for (j = 0; j < 16; j++) 
+			*(key->roundkeys + (R - i) * 16 + j) = t[j];
 	}
-	return R;
+	ret = SUCCESS;
+	return ret;
 }
 // Encryption and decryption rountine
 // p: plain text, e: round keys, c: ciphertext
@@ -228,4 +238,26 @@ void Crypt(const uint8_t* p, int R, const uint8_t* e, uint8_t* c)
 	}
 	DL(c, t);
 	for (j = 0; j < 16; j++) c[j] = e[j] ^ t[j];
+}
+//12,14,16
+RET ARIA_encryption(const uint8_t* pt, const ARIA_KEY* key, uint8_t* out) {
+	int i, j, flag =0;
+	uint8_t t[16];
+	
+	for (j = 0; j < 16; j++)
+		out[j] = pt[j];
+	for (i = 0; i < key->rounds; i++) {
+		for (j = 0; j < 16; j++)
+			t[j] = S[j % 4][key->roundkeys[j + flag] ^ out[j]];
+		DL(t, out);
+		flag = flag + 16;
+		for (j = 0; j < 16; j++)
+			t[j] = S[(2 + j) % 4][key->roundkeys[j + flag] ^ out[j]];
+		DL(t, out);
+		flag = flag + 16;
+	}
+	DL(out, t);
+	for (j = 0; j < 16; j++)
+		out[j] = key->roundkeys[j + flag] ^ t[j];
+	return SUCCESS;
 }

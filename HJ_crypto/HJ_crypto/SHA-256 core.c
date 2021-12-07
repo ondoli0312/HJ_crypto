@@ -1,4 +1,4 @@
-#include "SHA_2_Family.h"
+#include "SHA-2 core.h"
 
 static const uint32_t cont[64] =
 {
@@ -18,6 +18,8 @@ static const uint32_t cont[64] =
 
 RET SHA256_init(IN SHA256_INFO* info) {
 	RET ret = FAILURE;
+	if (info == NULL)
+		return ret;
 	info->hash[0] = 0x6a09e667;
 	info->hash[1] = 0xbb67ae85;
 	info->hash[2] = 0x3c6ef372;
@@ -52,7 +54,7 @@ static RET SHA256_BLOCK(IN const uint32_t* pt, IN SHA256_INFO* info) {
 		W[i] = W[i - 16] + W[i - 7] + WE0(W[i - 15]) + WE1(W[i - 2]);
 
 	for (int i = 0; i < 64; i++) {
-		temp0 = h + BS1(e) + Ch(e, f, g) + cont[i] + W[i];
+		temp0 = h + BS1(e) + CH(e, f, g) + cont[i] + W[i];
 		temp1 = (BS0(a)) + (Maj(a, b, c));
 		h = g;
 		g = f;
@@ -84,8 +86,8 @@ static RET SHA256_BLOCK(IN const uint32_t* pt, IN SHA256_INFO* info) {
 	h = 0;
 	temp0 = 0;
 	temp1 = 0;
+	HJCrypto_memset(W, 0, sizeof(W));
 	ret = SUCCESS;
-	ret = HJCrypto_memset(W, 0, sizeof(W));
 	return ret;
 }
 
@@ -96,6 +98,8 @@ RET SHA256_process(IN const uint8_t* pt, IN uint64_t ptLen, IN SHA256_INFO* info
 	while (ptLen >= SHA256_BLOCKBYTE) {
 		memcpy((uint8_t*)info->BUF, pt, SHA256_BLOCKBYTE);
 		ret = SHA256_BLOCK((uint32_t*)info->BUF, info);
+		if (ret == FAILURE)
+			return FAILURE;
 		pt += SHA256_BLOCKBYTE;
 		ptLen -= SHA256_BLOCKBYTE;
 	}
@@ -105,20 +109,24 @@ RET SHA256_process(IN const uint8_t* pt, IN uint64_t ptLen, IN SHA256_INFO* info
 
 RET SHA256_final(IN SHA256_INFO* info, OUT uint8_t* out) {
 	uint32_t r = (info->ptLen) % SHA256_BLOCKBYTE;
-	uint32_t ret = FAILURE;
+	RET ret = FAILURE;
 
 	info->BUF[r++] = 0x80;
 	if (r >= SHA256_BLOCKBYTE - 8) {
-		ret += HJCrypto_memset((uint8_t*)info->BUF + r, 0, SHA256_BLOCKBYTE - r);
-		ret += SHA256_BLOCK((uint32_t*)info->BUF, info);
-		ret += HJCrypto_memset((uint8_t*)info->BUF, 0, SHA256_BLOCKBYTE - 8);
+		HJCrypto_memset((uint8_t*)info->BUF + r, 0, SHA256_BLOCKBYTE - r);
+		ret = SHA256_BLOCK((uint32_t*)info->BUF, info);
+		if (ret == FAILURE)
+			return FAILURE;
+		HJCrypto_memset((uint8_t*)info->BUF, 0, SHA256_BLOCKBYTE - 8);
 	}
 	else {
-		ret += HJCrypto_memset((uint8_t*)info->BUF, 0, SHA256_BLOCKBYTE - 8 - r);
+		HJCrypto_memset((uint8_t*)info->BUF, 0, SHA256_BLOCKBYTE - 8 - r);
 	}
 	((uint32_t*)info->BUF)[SHA256_BLOCKBYTE / 4 - 2] = ENDIAN_CHANGE32((info->ptLen) >> 29);
 	((uint32_t*)info->BUF)[SHA256_BLOCKBYTE / 4 - 1] = ENDIAN_CHANGE32((info->ptLen) << 3) & 0xffffffff;
-	ret += SHA256_BLOCK((uint32_t*)info->BUF, info);
+	ret = SHA256_BLOCK((uint32_t*)info->BUF, info);
+	if (ret == FAILURE)
+		return FAILURE;
 
 	out[0] = (info->hash[0] >> 24) & 0xff;
 	out[1] = (info->hash[0] >> 16) & 0xff;
@@ -164,8 +172,7 @@ RET SHA256_final(IN SHA256_INFO* info, OUT uint8_t* out) {
 	HJCrypto_memset((uint8_t*)info->BUF, 0, SHA256_BLOCKBYTE);
 	HJCrypto_memset((uint8_t*)info->hash, 0, sizeof(uint32_t) * 8);
 	info->ptLen = 0;
-	if ((ret != 4) && (ret != 2))
-		return FAILURE;
-	
-	return SUCCESS;
+	r = 0;
+	ret = SUCCESS;
+	return ret;
 }

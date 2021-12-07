@@ -25,18 +25,21 @@
     <Filter Include="소스 파일\src">
       <UniqueIdentifier>{f82ded53-6d74-44c6-bbe4-69ebc3248d6b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Mode">
+      <UniqueIdentifier>{fdccefe9-b209-40bd-b73b-649b4056c835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\HMAC-DRBG">
+      <UniqueIdentifier>{5ad57654-aaa6-4d72-910b-60dbb03bb91a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\HMAC">
+      <UniqueIdentifier>{773d11a8-9a20-4403-a1e1-a52bedd47b2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
       <Filter>소스 파일\src</Filter>
     </ClCompile>
-    <ClCompile Include="src.c">
-      <Filter>소스 파일\src</Filter>
-    </ClCompile>
     <ClCompile Include="SHA-256 core.c">
-      <Filter>소스 파일\SHA-2 Family</Filter>
-    </ClCompile>
-    <ClCompile Include="SHA-256.c">
       <Filter>소스 파일\SHA-2 Family</Filter>
     </ClCompile>
     <ClCompile Include="ARIA core.c">
@@ -44,6 +47,27 @@
     </ClCompile>
     <ClCompile Include="LEA core.c">
       <Filter>소스 파일\LEA</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA512_core.c">
+      <Filter>소스 파일\SHA-2 Family</Filter>
+    </ClCompile>
+    <ClCompile Include="src.c">
+      <Filter>소스 파일\src</Filter>
+    </ClCompile>
+    <ClCompile Include="hash.c">
+      <Filter>소스 파일\SHA-2 Family</Filter>
+    </ClCompile>
+    <ClCompile Include="Mode core.c">
+      <Filter>소스 파일\Mode</Filter>
+    </ClCompile>
+    <ClCompile Include="HMAC-core.c">
+      <Filter>소스 파일\HMAC</Filter>
+    </ClCompile>
+    <ClCompile Include="DRBG-core.c">
+      <Filter>소스 파일\HMAC-DRBG</Filter>
+    </ClCompile>
+    <ClCompile Include="src_test.c">
+      <Filter>소스 파일\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -53,8 +77,23 @@
     <ClInclude Include="type.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="SHA_2_Family.h">
+    <ClInclude Include="SHA-2 core.h">
       <Filter>소스 파일\SHA-2 Family</Filter>
+    </ClInclude>
+    <ClInclude Include="HJ_crypto.h">
+      <Filter>소스 파일\src</Filter>
+    </ClInclude>
+    <ClInclude Include="ARIA.h">
+      <Filter>소스 파일\ARIA</Filter>
+    </ClInclude>
+    <ClInclude Include="mode core.h">
+      <Filter>소스 파일\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="HMAC-SHA.h">
+      <Filter>소스 파일\HMAC</Filter>
+    </ClInclude>
+    <ClInclude Include="HMAC-DRBG.h">
+      <Filter>소스 파일\HMAC-DRBG</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
