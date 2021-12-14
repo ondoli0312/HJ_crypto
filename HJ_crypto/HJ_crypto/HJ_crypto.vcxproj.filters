@@ -16,9 +16,6 @@
     <Filter Include="소스 파일\LEA">
       <UniqueIdentifier>{3c8b72c6-303c-4a47-81ef-7455b7440be0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\ARIA">
-      <UniqueIdentifier>{506b127d-eaa5-4b87-94f4-504614745c37}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\SHA-2 Family">
       <UniqueIdentifier>{cc4a01a5-4055-4339-99b1-29f1f5595078}</UniqueIdentifier>
     </Filter>
@@ -42,14 +39,8 @@
     <ClCompile Include="SHA-256 core.c">
       <Filter>소스 파일\SHA-2 Family</Filter>
     </ClCompile>
-    <ClCompile Include="ARIA core.c">
-      <Filter>소스 파일\ARIA</Filter>
-    </ClCompile>
     <ClCompile Include="LEA core.c">
       <Filter>소스 파일\LEA</Filter>
-    </ClCompile>
-    <ClCompile Include="SHA512_core.c">
-      <Filter>소스 파일\SHA-2 Family</Filter>
     </ClCompile>
     <ClCompile Include="src.c">
       <Filter>소스 파일\src</Filter>
@@ -69,22 +60,22 @@
     <ClCompile Include="src_test.c">
       <Filter>소스 파일\src</Filter>
     </ClCompile>
+    <ClCompile Include="Mode.c">
+      <Filter>소스 파일\Mode</Filter>
+    </ClCompile>
+    <ClCompile Include="MAC.c">
+      <Filter>소스 파일\HMAC</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LEA.h">
       <Filter>소스 파일\LEA</Filter>
-    </ClInclude>
-    <ClInclude Include="type.h">
-      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="SHA-2 core.h">
       <Filter>소스 파일\SHA-2 Family</Filter>
     </ClInclude>
     <ClInclude Include="HJ_crypto.h">
       <Filter>소스 파일\src</Filter>
-    </ClInclude>
-    <ClInclude Include="ARIA.h">
-      <Filter>소스 파일\ARIA</Filter>
     </ClInclude>
     <ClInclude Include="mode core.h">
       <Filter>소스 파일\Mode</Filter>

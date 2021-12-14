@@ -1,4 +1,4 @@
-#include "type.h"
+#include "HJ_crypto.h"
 
 RET HJCrypto_memset(void* pointer, uint32_t value, uint32_t size)
 {
@@ -17,3 +17,4 @@ RET HJCrypto_memset(void* pointer, uint32_t value, uint32_t size)
     }
     return SUCCESS;
 }
+

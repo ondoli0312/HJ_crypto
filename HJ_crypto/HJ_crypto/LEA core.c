@@ -1,4 +1,3 @@
-#include "type.h"
 #include "LEA.h"
 /*
 	This code is an open source code provided by KISA

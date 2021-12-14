@@ -1,11 +1,5 @@
 #pragma once
-#include "type.h"
-typedef struct lea_key_st
-{
-	uint32_t rk[192];
-	uint32_t round;
-}LEA_KEY;
-
+#include "HJ_crypto.h"
 
 #define ROR(W,i) (((W) >> (i)) | ((W) << (32 - (i))))
 #define ROL(W,i) (((W) << (i)) | ((W) >> (32 - (i))))

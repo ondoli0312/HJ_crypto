@@ -1,35 +1,7 @@
 #pragma once
-#include "type.h"
-#include "ARIA.h"
+#include "HJ_crypto.h"
 #include "LEA.h"
 
-#define BLOCKSIZE 16
-
-typedef struct {
-	uint64_t ptLen;
-	uint32_t keyLen;
-	uint32_t ENC;
-	uint32_t MODE;
-	uint32_t TYPE;
-	uint8_t IV[BLOCKSIZE];
-	uint8_t lastBlock[BLOCKSIZE];
-	uint64_t encrypted_len;
-	LEA_KEY* LEA_key;
-	ARIA_KEY* ARIA_key;
-}blockCipher;
-
-enum {
-	LEA = 0x11000000,
-	ARIA
-};
-
-enum {
-	CBC = 0x71000000,
-	CTR
-};
-
-enum {
-	ENCRYPTION = 0x81000000,
-	DECRYPTION
-};
-
+RET CTR_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t keyLen, uint32_t mode, uint32_t type, const uint8_t* iv);
+RET CTR_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint8_t* out, uint64_t* outLen);
+RET CTR_final(blockCipher* info, uint8_t* out);
