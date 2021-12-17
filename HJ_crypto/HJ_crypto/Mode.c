@@ -1,14 +1,12 @@
 #include "HJ_crypto.h"
 #include "mode core.h"
 
-blockCipher* info;
+blockCipher info;
 
 RET HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out) {
 	RET ret = FAILURE;
 	RET p_flag = 0;
 	uint64_t outLen = 0;
-	if (info == NULL)
-		return FAILURE;
 
 	//parameter Check
 	if ((Enc != LEA) || (mode != CTR) || ((type != ENCRYPTION) && (type != DECRYPTION))) {
@@ -56,8 +54,6 @@ EXIT:
 RET HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv) {
 	RET ret = FAILURE;
 	RET p_flag = 0;
-	if (info == NULL)
-		return FAILURE;
 
 	//parameter Check
 	if ((Enc != LEA) || (mode != CTR) || ((type != ENCRYPTION) && (type != DECRYPTION))) {
@@ -97,8 +93,6 @@ EXIT:
 RET HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
 	RET ret = FAILURE;
 	RET p_flag = 0;
-	if (info == NULL)
-		return FAILURE;
 
 	//parameter Check
 	if ((in == NULL) || (out == NULL) || (outLen == NULL))
@@ -127,8 +121,6 @@ EXIT:
 RET HJCrypto_BlockCipher_final(uint8_t* out) {
 	RET ret = FAILURE;
 	RET p_flag = 0;
-	if (info == NULL)
-		return FAILURE;
 
 	//parameter Check
 	if ((out == NULL))

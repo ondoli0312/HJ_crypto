@@ -45,10 +45,10 @@ enum {
 	LEA = 0x11000000
 };
 enum {
-	CTR = 0x71000000
+	CTR = 0x12000000
 };
 enum {
-	ENCRYPTION = 0x81000000,
+	ENCRYPTION = 0x13000000,
 	DECRYPTION
 };
 RET HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out);
@@ -74,7 +74,7 @@ typedef struct {
 }Hash;
 
 enum {
-	sha256 = 0x19000000
+	sha256 = 0x14000000
 };
 RET HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest);
 RET HJCrypto_Hash_init(uint32_t Func);
@@ -85,8 +85,31 @@ RET HJCrypto_Hash_final(uint8_t* Digest);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //HMAC API
+#define HMAC_SHA256_BLOCKBYTE 64
+#define HMAC_SHA256_DIGEST 32
+typedef struct {
+	Hash hash_info;
+	uint32_t func;
+	uint32_t keyLen;
+	RET keyupdate_state;
+	uint8_t key[HMAC_SHA256_BLOCKBYTE];
+	uint8_t HMAC_IPAD[HMAC_SHA256_DIGEST];
+}MAC;
 
-//HMAC-DRBG API
+enum {
+	HMAC_SHA256 = 0x15000000
+};
+
+RET HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out);
+RET HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen);
+RET HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen);
+RET HJCrypto_HMAC_final(uint8_t* out);
+
+
+//CTR-DRBG API
+
+//KCDSA API
+
 
 //Self-Testing API
 
