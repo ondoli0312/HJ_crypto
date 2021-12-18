@@ -22,7 +22,7 @@ uint32_t HJCrypto_CTR_DRBG_Instantiate(
 		pFlag = FAIL_invaild_paramter;
 		goto PERR;
 	}
-	if (nonce == NULL || (nonceLen < (keyLen >> 1))) {
+	if (nonce != NULL && (nonceLen < (keyLen >> 1))) {
 		pFlag = FAIL_invaild_paramter;
 		goto PERR;
 	}

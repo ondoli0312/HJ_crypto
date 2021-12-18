@@ -2,11 +2,46 @@
 #include "mode core.h"
 
 blockCipher info;
+extern FUNC_TEST func_test_state;
+extern uint32_t HJCrypto_state;
+extern uint32_t _getState();
+void _Change_HJCrypto_state(uint32_t change);
 
 uint32_t HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
 	uint64_t outLen = 0;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_BlockCipher	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_BlockCipher	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
 
 	//parameter Check
 	if ((Enc != LEA) || ((mode != CTR) && (mode != ECB)) ||((type != ENCRYPTION) && (type != DECRYPTION))) {
@@ -62,14 +97,20 @@ uint32_t HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const*
 	return ret;
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_BlockCipher	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher\n");
-		fprintf(stdout, "[이유] : Critical ERROR\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_BlockCipher	//\n");
 		ret = FAIL_critical;
 		p_flag = 0;
 		outLen = 0;
@@ -81,6 +122,38 @@ EXIT:
 uint32_t HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
 
 	//parameter Check
 	if ((Enc != LEA) || ((mode != CTR) && (mode != ECB)) || ((type != ENCRYPTION) && (type != DECRYPTION))) {
@@ -117,15 +190,21 @@ uint32_t HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, c
 	return ret;
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_init\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
 		ret = FAIL_critical;
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_init\n");
-		fprintf(stdout, "[이유] : Critical Error\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return ret;
@@ -135,6 +214,38 @@ EXIT:
 uint32_t HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//[Location]: HJCrypto_BlockCipher_Update	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//[Location]: HJCrypto_BlockCipher_Update	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
 	//parameter Check
 	if ((in == NULL) || (out == NULL) || (outLen == NULL)) {
 		p_flag = FAIL_invaild_paramter;
@@ -159,15 +270,21 @@ uint32_t HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t*
 	return ret;
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_Update\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//[Location]: HJCrypto_BlockCipher_Update	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
 		ret = FAIL_critical;
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_Update\n");
-		fprintf(stdout, "[이유] : Critical Error\n");
+		fprintf(stdout, "//[Location]: HJCrypto_BlockCipher_Update	//\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return ret;
@@ -177,6 +294,37 @@ EXIT:
 uint32_t HJCrypto_BlockCipher_final(uint8_t* out) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
 
 	//parameter Check
 	if ((out == NULL)) {
@@ -202,15 +350,21 @@ uint32_t HJCrypto_BlockCipher_final(uint8_t* out) {
 	return ret;
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_final\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//	[Location]: HJCrypto_BlockCipher_final	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
 		ret = FAIL_critical;
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_final\n");
-		fprintf(stdout, "[이유] : Critical Error\n");
+		fprintf(stdout, "//	[Location]: HJCrypto_BlockCipher_final	//\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return ret;
@@ -219,6 +373,38 @@ EXIT:
 
 uint32_t HJCrypto_BlockCipher_Clear(void) {
 	uint32_t ret = success;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_BlockCipher_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
 	ret = HJCrypto_memset(&info, 0, sizeof(blockCipher));
 	return ret;
 }

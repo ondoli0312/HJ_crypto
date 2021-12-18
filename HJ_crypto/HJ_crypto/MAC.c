@@ -1,11 +1,45 @@
 #include "HJ_crypto.h"
 #include "HMAC-SHA.h"
+
 MAC info;
+extern FUNC_TEST func_test_state;
+extern uint32_t HJCrypto_state;
+extern uint32_t _getState();
+void _Change_HJCrypto_state(uint32_t change);
 
 uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out){
 	uint32_t p_flag = success;
 	uint32_t ret = success;
-	
+	uint32_t state = _getState();
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC			//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC			//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
 	//Parameter Check
 	if (func != HMAC_SHA256) {
 		p_flag = FAIL_invaild_paramter;
@@ -36,12 +70,20 @@ uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const
 	return ret;
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_HMAC\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
-		return ret;
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC			//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC			//\n");
 		ret = FAIL_critical;
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(MAC));
@@ -52,6 +94,36 @@ EXIT:
 uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
+	uint32_t state = _getState();
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
 
 	//Parameter Check
 	if (func != HMAC_SHA256) {
@@ -75,12 +147,20 @@ uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen) 
 
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_HMAC_init\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
-		return ret;
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_init	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_init	//\n");
 		ret = ret = FAIL_critical;
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(MAC));
@@ -91,6 +171,36 @@ EXIT:
 uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
+	uint32_t state = _getState();
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_process	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_process	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
 
 	//Parameter Check
 	if ((pt == NULL)) {
@@ -110,12 +220,20 @@ uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen) {
 
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_HMAC_process\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
-		return ret;
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_process	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_process	//\n");
 		ret = FAIL_critical;
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(MAC));
@@ -126,6 +244,36 @@ EXIT:
 uint32_t HJCrypto_HMAC_final(uint8_t* out) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
+	uint32_t state = _getState();
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_final	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_final	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
 
 	//Parameter Check
 	if ((out == NULL)) {
@@ -141,12 +289,20 @@ uint32_t HJCrypto_HMAC_final(uint8_t* out) {
 
 PERR:
 	if (p_flag != success) {
-		fprintf(stdout, "[위치] : HJCrypto_HMAC_final\n");
-		fprintf(stdout, "[이유] : Parameter Error\n");
-		return ret;
+		_Change_HJCrypto_state(HJ_normal_err);
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter	//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_process	//\n");
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_final	//\n");
+		fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		_Change_HJCrypto_state(HJ_NORMAL);
+		HJCrypto_memset(&info, 0, sizeof(MAC));
+		return p_flag;
 	}
 EXIT:
 	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC_final	//\n");
 		ret = FAIL_critical;
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(MAC));
