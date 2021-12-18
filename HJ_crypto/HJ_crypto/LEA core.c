@@ -797,4 +797,6 @@ RET LEA_decryption(uint8_t* pt, const LEA_KEY* key, const uint8_t* ct)
 	_pt[1] = loadU32(X1);
 	_pt[2] = loadU32(X2);
 	_pt[3] = loadU32(X3);
+	ret = SUCCESS;
+	return ret;
 }

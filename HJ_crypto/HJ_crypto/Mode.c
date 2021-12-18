@@ -9,7 +9,7 @@ RET HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* mast
 	uint64_t outLen = 0;
 
 	//parameter Check
-	if ((Enc != LEA) || (mode != CTR) || ((type != ENCRYPTION) && (type != DECRYPTION))) {
+	if ((Enc != LEA) || ((mode != CTR) && (mode != ECB)) ||((type != ENCRYPTION) && (type != DECRYPTION))) {
 		p_flag = FAILURE;
 		goto PERR;
 	}
@@ -18,22 +18,48 @@ RET HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* mast
 		goto PERR;
 	}
 	//나중에 ECB 탑재하는 경우, iv가 NULL 일 수 있음.
-	if ((in == NULL) || (iv == NULL) || (out == NULL)) {
+	if ((in == NULL) || (out == NULL)) {
 		p_flag = FAILURE;
 		goto PERR;
 	}
+	if ((mode == CTR) && (iv == NULL)) {
+		if ((in == NULL) || (out == NULL)) {
+			p_flag = FAILURE;
+			goto PERR;
+		}
+	}
 
-	ret = CTR_init(&info, Enc, masterkey, keyLen, mode, type, iv);
-	if (ret == FAILURE)
+	switch (mode)
+	{
+	case ECB:
+		ret = ECB_init(&info, Enc, masterkey, keyLen, mode, type);
+		if (ret == FAILURE)
+			goto EXIT;
+		ret = ECB_update(&info, in, ptLen, out, &outLen);
+		if (ret == FAILURE)
+			goto EXIT;
+		ret = ECB_final(&info, out);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	case CTR:
+		ret = CTR_init(&info, Enc, masterkey, keyLen, mode, type, iv);
+		if (ret == FAILURE)
+			goto EXIT;
+		ret = CTR_update(&info, in, ptLen, out, &outLen);
+		if (ret == FAILURE)
+			goto EXIT;
+		ret = CTR_final(&info, out);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	default:
 		goto EXIT;
-	ret = CTR_update(&info, in, ptLen, out, &outLen);
-	if (ret == FAILURE)
-		goto EXIT;
-	ret = CTR_final(&info, out);
-	if (ret == FAILURE)
-		goto EXIT;
-
-
+		break;
+	}
+	p_flag = 0;
+	outLen = 0;
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
 		fprintf(stdout, "[위치] : HJCrypto_BlockCipher\n");
@@ -42,6 +68,8 @@ PERR:
 	}
 EXIT:
 	if (ret == FAILURE) {
+		fprintf(stdout, "[위치] : HJCrypto_BlockCipher\n");
+		fprintf(stdout, "[이유] : Critical ERROR\n");
 		ret = FAILURE;
 		p_flag = 0;
 		outLen = 0;
@@ -56,7 +84,7 @@ RET HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const*
 	RET p_flag = 0;
 
 	//parameter Check
-	if ((Enc != LEA) || (mode != CTR) || ((type != ENCRYPTION) && (type != DECRYPTION))) {
+	if ((Enc != LEA) || ((mode != CTR) && (mode != ECB)) || ((type != ENCRYPTION) && (type != DECRYPTION))) {
 		p_flag = FAILURE;
 		goto PERR;
 	}
@@ -64,16 +92,30 @@ RET HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const*
 		p_flag = FAILURE;
 		goto PERR;
 	}
+
 	//나중에 ECB 탑재하는 경우, iv가 NULL 일 수 있음.
-	if ((iv == NULL)) {
+	if ((mode == CTR) && (iv == NULL)) {
 		p_flag = FAILURE;
 		goto PERR;
 	}
 
-	ret = CTR_init(&info, Enc, masterkey, keyLen, mode, type, iv);
-	if (ret == FAILURE)
+	switch (mode)
+	{
+	case ECB:
+		ret = ECB_init(&info, Enc, masterkey, keyLen, mode, type);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	case CTR:
+		ret = CTR_init(&info, Enc, masterkey, keyLen, mode, type, iv);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	default:
 		goto EXIT;
-
+		break;
+	}
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
 		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_init\n");
@@ -83,39 +125,52 @@ PERR:
 EXIT:
 	if (ret == FAILURE) {
 		ret = FAILURE;
+		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_init\n");
+		fprintf(stdout, "[이유] : Critical Error\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return ret;
 	}
-	return ret;
 }
 
 RET HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
 	RET ret = FAILURE;
 	RET p_flag = 0;
-
 	//parameter Check
 	if ((in == NULL) || (out == NULL) || (outLen == NULL))
 		goto PERR;
-
-	ret = CTR_update(&info, in, ptLen, out, outLen);
-	if (ret == FAILURE)
+	switch (info.MODE)
+	{
+	case ECB:
+		ret = ECB_update(&info, in, ptLen, out, &outLen);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	case CTR:
+		ret = CTR_update(&info, in, ptLen, out, &outLen);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	default:
 		goto EXIT;
-
+		break;
+	}
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_init\n");
+		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_Update\n");
 		fprintf(stdout, "[이유] : Parameter Error\n");
 		return ret;
 	}
 EXIT:
 	if (ret == FAILURE) {
 		ret = FAILURE;
+		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_Update\n");
+		fprintf(stdout, "[이유] : Critical Error\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return ret;
 	}
-	return ret;
 }
 
 RET HJCrypto_BlockCipher_final(uint8_t* out) {
@@ -126,19 +181,33 @@ RET HJCrypto_BlockCipher_final(uint8_t* out) {
 	if ((out == NULL))
 		goto PERR;
 
-	ret = CTR_final(&info, out);
-	if (ret == FAILURE)
-		goto EXIT;
-
+	switch (info.MODE)
+	{
+	case ECB:
+		ret = ECB_final(&info, out);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	case CTR:
+		ret = CTR_final(&info, out);
+		if (ret == FAILURE)
+			goto EXIT;
+		break;
+	default:
+		break;
+	}
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
-		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_init\n");
+		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_final\n");
 		fprintf(stdout, "[이유] : Parameter Error\n");
 		return ret;
 	}
 EXIT:
 	if (ret == FAILURE) {
 		ret = FAILURE;
+		fprintf(stdout, "[위치] : HJCrypto_BlockCipher_final\n");
+		fprintf(stdout, "[이유] : Critical Error\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(blockCipher));
 		return ret;

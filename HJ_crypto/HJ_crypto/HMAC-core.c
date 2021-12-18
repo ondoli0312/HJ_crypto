@@ -22,7 +22,6 @@ RET HMAC_init(MAC* info, uint32_t func, const uint8_t* key, uint64_t keyLen)
 		}
 		else {
 			//keyLen < HMAC_SHA256_BLOCKBYTE
-			info->func = func;
 			info->keyLen = keyLen;
 			memcpy(info->key, key, keyLen);
 			info->keyupdate_state = FAILURE;

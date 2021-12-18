@@ -25,11 +25,14 @@
     <Filter Include="소스 파일\Mode">
       <UniqueIdentifier>{fdccefe9-b209-40bd-b73b-649b4056c835}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\HMAC-DRBG">
-      <UniqueIdentifier>{5ad57654-aaa6-4d72-910b-60dbb03bb91a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\HMAC">
       <UniqueIdentifier>{773d11a8-9a20-4403-a1e1-a52bedd47b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\DRBG">
+      <UniqueIdentifier>{010ec0d5-207c-4da3-8f3f-6340f30443bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\KAT">
+      <UniqueIdentifier>{eaf5e187-a8b9-4930-b646-a6b8c39b7d0f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -54,9 +57,6 @@
     <ClCompile Include="HMAC-core.c">
       <Filter>소스 파일\HMAC</Filter>
     </ClCompile>
-    <ClCompile Include="DRBG-core.c">
-      <Filter>소스 파일\HMAC-DRBG</Filter>
-    </ClCompile>
     <ClCompile Include="src_test.c">
       <Filter>소스 파일\src</Filter>
     </ClCompile>
@@ -65,6 +65,15 @@
     </ClCompile>
     <ClCompile Include="MAC.c">
       <Filter>소스 파일\HMAC</Filter>
+    </ClCompile>
+    <ClCompile Include="DRBG core.c">
+      <Filter>소스 파일\DRBG</Filter>
+    </ClCompile>
+    <ClCompile Include="DRBG.c">
+      <Filter>소스 파일\DRBG</Filter>
+    </ClCompile>
+    <ClCompile Include="KAT_TEST.c">
+      <Filter>소스 파일\KAT</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,8 +92,11 @@
     <ClInclude Include="HMAC-SHA.h">
       <Filter>소스 파일\HMAC</Filter>
     </ClInclude>
-    <ClInclude Include="HMAC-DRBG.h">
-      <Filter>소스 파일\HMAC-DRBG</Filter>
+    <ClInclude Include="DRBG.h">
+      <Filter>소스 파일\DRBG</Filter>
+    </ClInclude>
+    <ClInclude Include="KAT_TEST.h">
+      <Filter>소스 파일\KAT</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

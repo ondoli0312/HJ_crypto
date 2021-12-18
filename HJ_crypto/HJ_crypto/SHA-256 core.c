@@ -29,8 +29,11 @@ static RET SHA256_BLOCK(IN const uint32_t* pt, IN Hash* info) {
 	uint32_t temp0 = 0;
 	uint32_t temp1 = 0;
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++) {
 		W[i] = ENDIAN_CHANGE32(pt[i]);
+	}
+
+
 
 	for (int i = 16; i < 64; i++)
 		W[i] = W[i - 16] + W[i - 7] + WE0(W[i - 15]) + WE1(W[i - 2]);
@@ -97,7 +100,7 @@ RET SHA256_init(IN Hash* info) {
 
 RET SHA256_process(IN const uint8_t* pt, IN uint64_t ptLen, IN Hash* info)
 {
-	RET ret = FAILURE;
+	RET ret = SUCCESS;
 	uint64_t pt_index = 0;
 	while ((ptLen + info->lastLen) >= SHA256_BLOCKBYTE) {
 		memcpy((uint8_t*)(info->BUF + info->lastLen), pt + pt_index, (SHA256_BLOCKBYTE - info->lastLen));
@@ -116,9 +119,8 @@ RET SHA256_process(IN const uint8_t* pt, IN uint64_t ptLen, IN Hash* info)
 }
 
 RET SHA256_final(IN Hash* info, OUT uint8_t* out) {
-	uint64_t r = (info->ptLen) % SHA256_BLOCKBYTE;
+	uint64_t r = (info->lastLen + info->ptLen) % SHA256_BLOCKBYTE;
 	RET ret = FAILURE;
-
 	info->BUF[r++] = 0x80;
 	if (r >= SHA256_BLOCKBYTE - 8) {
 		HJCrypto_memset((uint8_t*)info->BUF + r, 0, SHA256_BLOCKBYTE - r);
@@ -130,8 +132,8 @@ RET SHA256_final(IN Hash* info, OUT uint8_t* out) {
 	else {
 		HJCrypto_memset((uint8_t*)info->BUF + r, 0, SHA256_BLOCKBYTE - 8 - r);
 	}
-	((uint32_t*)info->BUF)[SHA256_BLOCKBYTE / 4 - 2] = ENDIAN_CHANGE32((info->ptLen) >> 29);
-	((uint32_t*)info->BUF)[SHA256_BLOCKBYTE / 4 - 1] = ENDIAN_CHANGE32((info->ptLen) << 3) & 0xffffffff;
+	((uint32_t*)info->BUF)[SHA256_BLOCKBYTE / 4 - 2] = ENDIAN_CHANGE32((info->ptLen + info->lastLen) >> 29);
+	((uint32_t*)info->BUF)[SHA256_BLOCKBYTE / 4 - 1] = ENDIAN_CHANGE32((info->ptLen + info->lastLen) << 3) & 0xffffffff;
 	ret = SHA256_BLOCK((uint32_t*)info->BUF, info);
 	if (ret == FAILURE)
 		return FAILURE;

@@ -21,15 +21,19 @@ RET HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Dig
 	}
 
 	ret = SHA256_init(&info);
-	if (ret == FAILURE)
+	if (ret == FAILURE) {
 		goto EXIT;
+	}
 	ret = SHA256_process(pt, ptLen, &info);
-	if (ret == FAILURE)
+	if (ret == FAILURE){
 		goto EXIT;
+	}
 	ret = SHA256_final(&info, Digest);
-	if (ret == FAILURE)
+	if (ret == FAILURE) {
 		goto EXIT;
+	}
 
+	return ret;
 
 PERR:
 	if (p_flag == FAILURE) {
@@ -37,9 +41,10 @@ PERR:
 		fprintf(stdout, "[이유] : Parameter Error\n");
 		return p_flag;
 	}
-	return SUCCESS;
 EXIT:
 	if (ret == FAILURE) {
+		fprintf(stdout, "[위치] : HJCrypto_Hash\n");
+		fprintf(stdout, "[이유] : Critical Error\n");
 		p_flag = 0;
 		HJCrypto_memset(&info, 0, sizeof(Hash));
 		return ret;
@@ -58,14 +63,13 @@ RET HJCrypto_Hash_init(uint32_t Func) {
 	ret = SHA256_init(&info);
 	if (ret == FAILURE)
 		goto EXIT;
-
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
 		fprintf(stdout, "[위치] : HJCrypto_Hash\n");
 		fprintf(stdout, "[이유] : Parameter Error\n");
 		return p_flag;
 	}
-	return SUCCESS;
 EXIT:
 	if (ret == FAILURE) {
 		p_flag = 0;
@@ -88,6 +92,7 @@ RET HJCrypto_Hash_process(const uint8_t* pt, uint64_t ptLen) {
 	if (ret == FAILURE)
 		goto EXIT;
 
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
 		fprintf(stdout, "[위치] : HJCrypto_Hash\n");
@@ -115,6 +120,7 @@ RET HJCrypto_Hash_final(uint8_t* Digest) {
 	if (ret == FAILURE)
 		goto EXIT;
 
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
 		fprintf(stdout, "[위치] : HJCrypto_Hash\n");

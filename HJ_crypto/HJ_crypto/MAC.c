@@ -33,7 +33,7 @@ RET HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint
 	if (ret == FAILURE) {
 		goto EXIT;
 	}
-
+	return ret;
 PERR:
 	if (p_flag == FAILURE) {
 		fprintf(stdout, "[À§Ä¡] : HJCrypto_HMAC\n");

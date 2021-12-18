@@ -139,8 +139,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DRBG-core.c" />
+    <ClCompile Include="DRBG core.c" />
+    <ClCompile Include="DRBG.c" />
     <ClCompile Include="HMAC-core.c" />
+    <ClCompile Include="KAT_TEST.c" />
     <ClCompile Include="LEA core.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Mode core.c" />
@@ -152,9 +154,10 @@
     <ClCompile Include="MAC.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DRBG.h" />
     <ClInclude Include="HJ_crypto.h" />
-    <ClInclude Include="HMAC-DRBG.h" />
     <ClInclude Include="HMAC-SHA.h" />
+    <ClInclude Include="KAT_TEST.h" />
     <ClInclude Include="LEA.h" />
     <ClInclude Include="mode core.h" />
     <ClInclude Include="SHA-2 core.h" />
