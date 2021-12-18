@@ -4,7 +4,7 @@
 #################################################################################
 
 탑재 알고리즘은 다음과 같습니다
-1. BlockCipher/Mode of operation : LEA-CTR
+1. BlockCipher/Mode of operation : LEA-ECB, LEA-CTR
 2. Hash Function : SHA-256
 3. Message Authentication Code : HMAC-SHA256
 4. Key Derivation Function : PBKDF2-HMAC-SHA256 (예정)
