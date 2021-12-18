@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="DRBG core.c" />
     <ClCompile Include="DRBG.c" />
+    <ClCompile Include="HJ_crypto.c" />
     <ClCompile Include="HMAC-core.c" />
     <ClCompile Include="KAT_TEST.c" />
     <ClCompile Include="LEA core.c" />

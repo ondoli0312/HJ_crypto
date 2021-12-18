@@ -75,6 +75,9 @@
     <ClCompile Include="KAT_TEST.c">
       <Filter>소스 파일\KAT</Filter>
     </ClCompile>
+    <ClCompile Include="HJ_crypto.c">
+      <Filter>소스 파일\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LEA.h">

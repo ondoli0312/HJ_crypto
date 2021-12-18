@@ -1,6 +1,8 @@
 #include "KAT_TEST.h"
 #include "HJ_crypto.h"
 
+extern FUNC_TEST func_test_state;
+
 static uint32_t str2hex(uint8_t* out, char* in) {
 	uint32_t ret = 0;
 	while (in[ret] != '\0') {
@@ -284,9 +286,29 @@ typedef struct {
 	uint8_t RB[512];
 }DRBG_TV;
 
-//최종 API 호출
-uint32_t HJCrypto_KAT_SELF_TEST() {
+uint32_t _KAT_SELF_TEST()
+{
 	uint32_t ret = success;
 	ret = blockCipher_SelfTest_API();
+	if (ret != success) {
+		goto EXIT;
+	}
+	func_test_state.blockCipherTest = success;
+	ret = Hash_SelfTest_API();
+	if (ret != success) {
+		goto EXIT;
+	}
+	func_test_state.HashTest = success;
 
+	ret = HMAC_SelfTest_API();
+	if (ret != success) {
+		goto EXIT;
+	}
+	func_test_state.HMACTest = success;
+
+	return success;
+EXIT:
+	if (ret != success) {
+		return ret;
+	}
 }

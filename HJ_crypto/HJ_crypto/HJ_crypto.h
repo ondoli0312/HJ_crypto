@@ -16,8 +16,29 @@ enum HJCrypto_RESULT {
 	FAIL_invaild_state,
 	FAIL_katselp_test,
 	FAIL_critical,
-	FAIL_integrity_test
+	FAIL_integrity_test,
+	NOT_katselp_testing,
+
 };
+
+enum HJCrypto_state_num {
+	HJ_LOAD	=	0x17170000,
+	HJ_NORMAL,
+	HJ_preSELF_test,
+	HJ_condition_test,
+	HJ_normal_err,
+	HJ_critical_err,
+	HJ_exit
+};
+
+
+
+typedef struct {
+	uint32_t blockCipherTest;
+	uint32_t HashTest;
+	uint32_t HMACTest;
+	uint32_t DRBGTest;
+}FUNC_TEST;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,12 +190,3 @@ uint32_t HJCrypto_CTR_DRBG_Generate(
 
 //Self-Testing API
 
-//ERROR TYPE
-enum {
-	KAT_SELFTEST_FAILURE = 0x90100000
-
-};
-
-uint32_t blockCipher_SelfTest_API();
-uint32_t Hash_SelfTest_API();
-uint32_t HMAC_SelfTest_API();
