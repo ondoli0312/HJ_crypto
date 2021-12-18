@@ -19,6 +19,6 @@
 #define MAX_PER_STRING_LEN			0x100000000
 #define MAX_ADD_INPUT_LEN			0x100000000
 #define MAX_RAND_BYTE_LEN			2048
-RET CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* entropy, uint32_t entropyLen, uint8_t* nonce, uint32_t nonceLen, uint8_t* per_string, uint32_t perLen, uint32_t derivation_funcFlag);
-RET CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* add_input, uint32_t addLen);
-RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint8_t* entropy, uint64_t entroyLen, uint8_t* add_input, uint32_t addLen, uint32_t prediction_resistance_flag);
+uint32_t CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* entropy, uint32_t entropyLen, uint8_t* nonce, uint32_t nonceLen, uint8_t* per_string, uint32_t perLen, uint32_t derivation_funcFlag);
+uint32_t CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* add_input, uint32_t addLen);
+uint32_t CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint8_t* entropy, uint64_t entroyLen, uint8_t* add_input, uint32_t addLen, uint32_t prediction_resistance_flag);

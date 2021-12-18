@@ -71,7 +71,7 @@ static const blockCipher_TV test[] = {
 };
 
 uint32_t blockCipher_SelfTest_API() {
-	uint32_t ret = SUCCESS;
+	uint32_t ret = success;
 	uint8_t ciphertext[512];
 	uint8_t recovered[512];
 	uint64_t outLen = 0;
@@ -100,7 +100,7 @@ uint32_t blockCipher_SelfTest_API() {
 	HJCrypto_memset(recovered, 0, sizeof(recovered));
 	HJCrypto_memset(&info, 0, sizeof(blockCipher));
 	outLen = 0;
-	return SUCCESS;
+	return success;
 EXIT:
 	if (ret == KAT_SELFTEST_FAILURE) {
 		fprintf(stdout, "[위치] : blockCipher_SelfTest_API()\n");
@@ -128,7 +128,7 @@ static const Hash_TV hash_test[] = {
 };
 
 uint32_t Hash_SelfTest_API() {
-	uint32_t ret = SUCCESS;
+	uint32_t ret = success;
 	uint8_t hashDigest[SHA256_DIGEST_LEN];
 	uint8_t msg[512];
 	uint8_t testvector[SHA256_DIGEST_LEN];
@@ -207,7 +207,7 @@ static const HMAC_TV hmac_test[] = {
 };
 
 uint32_t HMAC_SelfTest_API() {
-	uint32_t ret = SUCCESS;
+	uint32_t ret = success;
 	uint8_t key[256];
 	uint8_t msg[1024];
 	uint8_t test_mac[HMAC_SHA256_DIGEST];
@@ -262,4 +262,31 @@ EXIT:
 		macLen = 0;
 		return ret;
 	}
+}
+
+typedef struct {
+	uint32_t func;
+	uint32_t keyLen;
+	uint32_t PR_flag;
+	uint32_t DF_flag;
+	uint32_t EntropyLen;
+	uint32_t NonceLen;
+	uint32_t perLen;
+	uint32_t AddLen;
+	uint32_t returnLen;
+	uint8_t Entropy[512];
+	uint8_t Nonce[512];
+	uint8_t Per_string[512];
+	uint8_t	EN_reseed[512];
+	uint8_t AD_reseed[512];
+	uint8_t AD_input1[512];
+	uint8_t AD_input2[512];
+	uint8_t RB[512];
+}DRBG_TV;
+
+//최종 API 호출
+uint32_t HJCrypto_KAT_SELF_TEST() {
+	uint32_t ret = success;
+	ret = blockCipher_SelfTest_API();
+
 }

@@ -6,22 +6,32 @@
 #include <stdbool.h>
 
 //Parameter Set
-typedef bool RET;
 #define IN
 #define OUT
-#define SUCCESS 1
-#define FAILURE 0
+
+enum HJCrypto_RESULT {
+	success = 0x18900000,
+	FAIL_inner_func,
+	FAIL_invaild_paramter,
+	FAIL_invaild_state,
+	FAIL_katselp_test,
+	FAIL_critical,
+	FAIL_integrity_test
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Src Function
-RET HJCrypto_memset(void* pointer, uint32_t value, uint32_t size);
+uint32_t HJCrypto_memset(void* pointer, uint32_t value, uint32_t size);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //BlockCipher API
+
 #define BLOCKSIZE 16
 typedef struct lea_key_st
 {
@@ -52,11 +62,13 @@ enum {
 	ENCRYPTION = 0x13000000,
 	DECRYPTION
 };
-RET HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out);
-RET HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv);
-RET HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen);
-RET HJCrypto_BlockCipher_final(uint8_t* out);
-RET HJCrypto_BlockCipher_Clear(void);
+
+uint32_t  HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out);
+uint32_t  HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv);
+uint32_t  HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen);
+uint32_t  HJCrypto_BlockCipher_final(uint8_t* out);
+uint32_t  HJCrypto_BlockCipher_Clear(void);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,10 +90,11 @@ typedef struct {
 enum {
 	sha256 = 0x14000000
 };
-RET HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest);
-RET HJCrypto_Hash_init(uint32_t Func);
-RET HJCrypto_Hash_process(const uint8_t* pt, uint64_t ptLen);
-RET HJCrypto_Hash_final(uint8_t* Digest);
+uint32_t HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest);
+uint32_t HJCrypto_Hash_init(uint32_t Func);
+uint32_t HJCrypto_Hash_process(const uint8_t* pt, uint64_t ptLen);
+uint32_t HJCrypto_Hash_final(uint8_t* Digest);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +106,7 @@ typedef struct {
 	Hash hash_info;
 	uint32_t func;
 	uint32_t keyLen;
-	RET keyupdate_state;
+	uint32_t keyupdate_state;
 	uint8_t key[HMAC_SHA256_BLOCKBYTE];
 	uint8_t HMAC_IPAD[HMAC_SHA256_DIGEST];
 }MAC;
@@ -102,11 +115,14 @@ enum {
 	HMAC_SHA256 = 0x15000000
 };
 
-RET HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out);
-RET HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen);
-RET HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen);
-RET HJCrypto_HMAC_final(uint8_t* out);
+uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out);
+uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen);
+uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen);
+uint32_t HJCrypto_HMAC_final(uint8_t* out);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //CTR-DRBG
 #define MAX_ENTROPY_LEN 256
@@ -130,23 +146,26 @@ enum {
 	NO_DF,
 	NO_PR
 };
-RET HJCrypto_CTR_DRBG_Instantiate(
+uint32_t HJCrypto_CTR_DRBG_Instantiate(
 	uint32_t func, uint32_t keyLen,
 	uint8_t* entropy, uint32_t entropyLen,
 	uint8_t* nonce, uint32_t nonceLen,
 	uint8_t* per_string, uint32_t perLen,
 	uint32_t derivation_funcFlag);
 
-RET HJCrypto_CTR_DRBG_Reseed(
+uint32_t HJCrypto_CTR_DRBG_Reseed(
 	DRBG* info,
 	uint8_t* entropy, uint32_t entropyLen,
 	uint8_t* add_input, uint32_t addLen);
 
-RET HJCrypto_CTR_DRBG_Generate(
+uint32_t HJCrypto_CTR_DRBG_Generate(
 	DRBG* info,
 	uint8_t* output, uint64_t req_bitLen, uint8_t* entropy, uint32_t entropyLen,
 	uint8_t* add_input, uint32_t addLen, uint32_t prediction_resFlag);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Self-Testing API
 

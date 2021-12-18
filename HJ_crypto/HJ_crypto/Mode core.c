@@ -1,12 +1,12 @@
 #include "mode core.h"
 
-static RET blockCipher_Clear(blockCipher* info) {
-	RET ret = FAILURE;
+static uint32_t blockCipher_Clear(blockCipher* info) {
+	uint32_t ret = success;
 	ret = HJCrypto_memset(info, 0, sizeof(blockCipher));
 	return ret;
 }
 
-static RET CTR_ADD(uint8_t* ctr)
+static uint32_t CTR_ADD(uint8_t* ctr)
 {
 	int i = 0;
 	uint8_t carry = 1;
@@ -20,32 +20,9 @@ static RET CTR_ADD(uint8_t* ctr)
 		ctr[i] = temp;
 	};
 }
-//
-//RET LEA_CTR(blockCipher* info, uint8_t* pt, uint64_t ptLen, uint8_t* ct, uint64_t* ctLen) {
-//	uint64_t i, j;
-//	uint8_t IV[16];
-//	uint8_t ct_temp[16];
-//	RET ret = FAILURE;
-//	memcpy(IV, info->IV, BLOCKSIZE);
-//	for (i = 0; i < ptLen / BLOCKSIZE; i++) {
-//		LEA_encryption(IV, &(info->LEA_key), ct_temp);
-//		for (j = 0; j < 16; j++)
-//			ct_temp[j] = *(pt + (i * BLOCKSIZE)) ^ IV[j];
-//		memcpy(ct + (i * BLOCKSIZE), ct_temp, BLOCKSIZE);
-//		ret = CTR_ADD(IV);
-//	}
-//	j = ptLen % BLOCKSIZE;
-//	memcpy(info->IV, IV, BLOCKSIZE);
-//	memcpy(info->lastBlock, pt + (i * BLOCKSIZE), j);
-//	ret = HJCrypto_memset(IV, 0, BLOCKSIZE);
-//	ret = HJCrypto_memset(ct_temp, 0, BLOCKSIZE);
-//	i = 0;
-//	j = 0;
-//	return ret;
-//}
 
-RET ECB_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t keyLen, uint32_t mode, uint32_t type) {
-	RET ret = FAILURE;
+uint32_t ECB_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t keyLen, uint32_t mode, uint32_t type) {
+	uint32_t ret = success;
 	memset(info, 0, sizeof(blockCipher));
 	if (Enc == LEA) {
 		info->ENC = LEA;
@@ -57,16 +34,15 @@ RET ECB_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t
 			ret = LEA_roundkeyGen(&(info->LEA_key), masterkey, keyLen);
 		}
 		else
-			return FAILURE;
+			return FAIL_inner_func;
 	}
 	else
-		return FAILURE;
-	ret = SUCCESS;
+		return FAIL_inner_func;
 	return ret;
 }
 
-RET CTR_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t keyLen, uint32_t mode, uint32_t type, const uint8_t* iv) {
-	RET ret = FAILURE;
+uint32_t CTR_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t keyLen, uint32_t mode, uint32_t type, const uint8_t* iv) {
+	uint32_t ret = success;
 	memset(info, 0, sizeof(blockCipher));
 	if (Enc == LEA) {
 		info->ENC = LEA;
@@ -79,16 +55,15 @@ RET CTR_init(blockCipher* info, uint32_t Enc, const uint8_t* masterkey, uint32_t
 			ret = LEA_roundkeyGen(&(info->LEA_key), masterkey, keyLen);
 		}
 		else
-			return FAILURE;
+			return FAIL_inner_func;
 	}
 	else
-		return FAILURE;
-	ret = SUCCESS;
+		return FAIL_inner_func;
 	return ret;
 }
 
-RET ECB_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
-	RET ret = FAILURE;
+uint32_t ECB_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
+	uint32_t ret = success;
 	uint32_t Encryption_Len = ptLen + (info->remain_Len);
 	uint32_t pt_index = 0;
 	uint8_t temp[BLOCKSIZE] = { 0, };
@@ -104,7 +79,7 @@ RET ECB_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint
 			LEA_decryption(ct, &(info->LEA_key), temp);
 		}
 		else {
-			return FAILURE;
+			return FAIL_inner_func;
 		}
 		for (uint32_t i = 0; i < BLOCKSIZE; i++) {
 			out[info->encrypted_len + i] = ct[i];
@@ -124,8 +99,8 @@ RET ECB_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint
 	return ret;
 }
 
-RET CTR_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
-	RET ret = FAILURE;
+uint32_t CTR_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
+	uint32_t ret = success;
 	uint32_t Encryption_Len = ptLen + (info->remain_Len);
 	uint32_t pt_index = 0;
 	uint8_t ct[BLOCKSIZE] = { 0, };
@@ -160,8 +135,8 @@ RET CTR_update(blockCipher* info, const uint8_t* plaintext, uint64_t ptLen, uint
 	return ret;
 }
 
-RET ECB_final(blockCipher* info, uint8_t* out) {
-	RET ret = FAILURE;
+uint32_t ECB_final(blockCipher* info, uint8_t* out) {
+	uint32_t ret = success;
 	uint8_t ct[BLOCKSIZE] = { 0, };
 	uint8_t temp[BLOCKSIZE] = { 0, };
 	if (info->remain_Len != 0) {
@@ -173,7 +148,7 @@ RET ECB_final(blockCipher* info, uint8_t* out) {
 			LEA_decryption(ct, &(info->LEA_key), temp);
 		}
 		else {
-			return FAILURE;
+			return FAIL_inner_func;
 		}
 		for (uint32_t i = 0; i < info->remain_Len; i++) {
 			out[info->encrypted_len + i] = ct[i];
@@ -185,8 +160,8 @@ RET ECB_final(blockCipher* info, uint8_t* out) {
 	return ret;
 }
 
-RET CTR_final(blockCipher* info, uint8_t* out) {
-	RET ret = FAILURE;
+uint32_t CTR_final(blockCipher* info, uint8_t* out) {
+	uint32_t ret = success;
 	uint8_t ct[BLOCKSIZE] = { 0, };
 	uint8_t IV[BLOCKSIZE] = { 0, };
 	uint8_t temp[BLOCKSIZE] = { 0, };

@@ -1,11 +1,11 @@
 #include "HJ_crypto.h"
 
-RET HJCrypto_memset(void* pointer, uint32_t value, uint32_t size)
+uint32_t HJCrypto_memset(void* pointer, uint32_t value, uint32_t size)
 {
-    RET ret = FAILURE;
+    uint32_t ret = success;
     if (pointer == NULL)
     {
-        return SUCCESS;
+        return success;
     }
 
     volatile uint8_t* vp = (volatile uint8_t*)pointer;
@@ -15,6 +15,6 @@ RET HJCrypto_memset(void* pointer, uint32_t value, uint32_t size)
         vp++;
         size--;
     }
-    return SUCCESS;
+    return success;
 }
 

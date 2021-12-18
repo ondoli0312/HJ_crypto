@@ -30,11 +30,11 @@ static void ctr_increase(unsigned char* counter) {
 	int_to_octet(counter + 0, c_byte);
 }
 
-static RET BCC(uint32_t func, uint8_t* key, uint32_t keyLen, uint8_t* data, uint64_t dataLen, uint8_t* outBlock, uint64_t outLen) {
+static uint32_t BCC(uint32_t func, uint8_t* key, uint32_t keyLen, uint8_t* data, uint64_t dataLen, uint8_t* outBlock, uint64_t outLen) {
 	uint32_t n = dataLen / outLen;
 	uint8_t inputBlock[MAX_V_LEN_IN_BYTES];
 	uint64_t i, j, idx = 0;
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	HJCrypto_memset(inputBlock, 0, MAX_V_LEN_IN_BYTES);
 	HJCrypto_memset(outBlock, 0, outLen);
 	for (i = 1; i <= n; i++) {
@@ -47,7 +47,7 @@ static RET BCC(uint32_t func, uint8_t* key, uint32_t keyLen, uint8_t* data, uint
 	return ret;
 }
 
-static RET Blockcipher_df(uint32_t func, uint32_t keyLen, uint8_t* input_string, uint64_t inputLen, uint8_t* out, uint64_t outLen)
+static uint32_t Blockcipher_df(uint32_t func, uint32_t keyLen, uint8_t* input_string, uint64_t inputLen, uint8_t* out, uint64_t outLen)
 {
 	uint8_t X[MAX_NUM_OF_BYTES_TO_RETURN];
 	uint8_t K[MAX_BLOCKCIPHER_KEY_LEN];
@@ -119,7 +119,7 @@ static RET Blockcipher_df(uint32_t func, uint32_t keyLen, uint8_t* input_string,
 		tempLen += BLOCKSIZE;
 	}
 	memcpy(out, temp, outLen);
-	return SUCCESS;
+	return success;
 EXIT:
 	if (S != NULL) {
 		memset(S, 0x00, SLen);
@@ -137,15 +137,15 @@ EXIT:
 	HJCrypto_memset(K, 0, sizeof(K));
 	HJCrypto_memset(IV, 0, sizeof(IV));
 	HJCrypto_memset(block, 0, sizeof(block));
-	return FAILURE;
+	return FAIL_inner_func;
 }
 
-static RET CTR_DRBG_update(uint8_t* provided_data, DRBG* info) {
+static uint32_t CTR_DRBG_update(uint8_t* provided_data, DRBG* info) {
 	uint8_t temp[MAX_SEEDLEN_IN_BYTES];
 	uint8_t* ptr;
 	int32_t tempLen = 0;
 	int32_t i = 0;
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	HJCrypto_memset(temp, 0, MAX_SEEDLEN_IN_BYTES);
 	if (provided_data == NULL)
 		goto EXIT;
@@ -167,7 +167,8 @@ static RET CTR_DRBG_update(uint8_t* provided_data, DRBG* info) {
 	i = 0;
 	return ret;
 EXIT:
-	if (ret == FAILURE) {
+	if (ret != success) {
+		ret = FAIL_inner_func;
 		HJCrypto_memset(info, 0, sizeof(DRBG));
 		ptr = NULL;
 		HJCrypto_memset(temp, 0, sizeof(temp));
@@ -175,13 +176,13 @@ EXIT:
 	}
 }
 
-RET CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* entropy, uint32_t entropyLen, uint8_t* nonce, uint32_t nonceLen, uint8_t* per_string, uint32_t perLen, uint32_t derivation_funcFlag){
+uint32_t CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* entropy, uint32_t entropyLen, uint8_t* nonce, uint32_t nonceLen, uint8_t* per_string, uint32_t perLen, uint32_t derivation_funcFlag){
 	uint8_t seed_material[MAX_SEEDLEN_IN_BYTES];
 	uint8_t seed_material_in = NULL;
 	uint8_t* ptr = NULL;
 	int32_t seed_material_Len = 0;
 	int32_t i = 0;
-	RET ret = FAILURE;
+	uint32_t ret = success;
 
 	HJCrypto_memset(info, 0, sizeof(DRBG));
 	
@@ -207,9 +208,9 @@ RET CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* en
 			ptr += entropyLen;
 			memcpy(ptr, per_string, perLen);
 		}
-		if (Blockcipher_df(func, keyLen, seed_material_in, seed_material_Len, seed_material, info->seedLen) != SUCCESS) {
+		if (Blockcipher_df(func, keyLen, seed_material_in, seed_material_Len, seed_material, info->seedLen) != success) {
 			HJCrypto_memset(seed_material, 0, info->seedLen);
-			ret = FAILURE;
+			ret = FAIL_inner_func;
 			goto EXIT;
 		}
 
@@ -232,9 +233,9 @@ RET CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* en
 	HJCrypto_memset(info->key, 0, MAX_Key_LEN_IN_BYTES);
 	HJCrypto_memset(info->V, 0, MAX_V_LEN_IN_BYTES);
 
-	if (CTR_DRBG_update(seed_material, info) != SUCCESS) {
+	if (CTR_DRBG_update(seed_material, info) != success) {
 		HJCrypto_memset(seed_material, 0, info->seedLen);
-		ret = FAILURE;
+		ret = FAIL_inner_func;
 		goto EXIT;
 	}
 	info->reseed_cnt = 1;
@@ -246,9 +247,9 @@ RET CTR_DRBG_Instantiate(DRBG* info, uint32_t func, uint32_t keyLen, uint8_t* en
 	ptr = NULL;
 	seed_material_Len = 0;
 	i = 0;
-	return SUCCESS;
+	return success;
 EXIT:
-	if (ret != SUCCESS) {
+	if (ret != success) {
 		HJCrypto_memset(info, 0, sizeof(DRBG));
 	}
 	if (seed_material_in != NULL) {
@@ -259,12 +260,12 @@ EXIT:
 	return ret;
 }
 
-RET CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* add_input, uint32_t addLen)
+uint32_t CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* add_input, uint32_t addLen)
 {
 	uint8_t seed_meterial[MAX_SEEDLEN_IN_BYTES];
 	uint8_t* seed_meterial_in = NULL;
 	uint8_t* ptr = NULL;
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	uint32_t seed_meterial_Len = 0;
 	uint32_t i = 0;
 	uint32_t j = 0;
@@ -282,8 +283,8 @@ RET CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* 
 			ptr += entropyLen;
 			memcpy(ptr, add_input, addLen);
 		}
-		if (Blockcipher_df(info->func, info->keyLen, seed_meterial_in, seed_meterial_Len, seed_meterial, info->seedLen) != SUCCESS) {
-			ret = FAILURE;
+		if (Blockcipher_df(info->func, info->keyLen, seed_meterial_in, seed_meterial_Len, seed_meterial, info->seedLen) != success) {
+			ret = FAIL_inner_func;
 			goto EXIT;
 		}
 	}
@@ -299,8 +300,8 @@ RET CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* 
 				seed_meterial[j] = entropy[j] ^ add_input[j];
 		}
 	}
-	if (CTR_DRBG_update(seed_meterial, info) != SUCCESS) {
-		ret = FAILURE;
+	if (CTR_DRBG_update(seed_meterial, info) != success) {
+		ret = FAIL_inner_func;
 		goto EXIT;
 	}
 	info->reseed_cnt = 1;
@@ -310,9 +311,9 @@ RET CTR_DRBG_Reseed(DRBG* info, uint8_t* entropy, uint32_t entropyLen, uint8_t* 
 	i = 0;
 	j = 0;
 	ptr = NULL;
-	return SUCCESS;
+	return success;
 EXIT:
-	if (ret != SUCCESS) {
+	if (ret != success) {
 		HJCrypto_memset(info, 0, sizeof(DRBG));
 	}
 	if (seed_meterial_in != NULL) {
@@ -326,11 +327,11 @@ EXIT:
 	return ret;
 }
 
-RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint8_t* entropy, uint64_t entroyLen, uint8_t* add_input, uint32_t addLen, uint32_t prediction_resistance_flag)
+uint32_t CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint8_t* entropy, uint64_t entroyLen, uint8_t* add_input, uint32_t addLen, uint32_t prediction_resistance_flag)
 {
 	uint8_t additional_input_seed[MAX_SEEDLEN_IN_BYTES];
 	int32_t request_Len = 0;
-	RET ret = 0;
+	uint32_t ret = 0;
 	uint8_t* temp = NULL;
 	uint8_t* ptr = NULL;
 	uint32_t tempLen = 0;
@@ -343,12 +344,12 @@ RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint
 		if ((add_input != NULL) && (addLen > 0)) {
 			if (info->derivation_func_flag == USE_DF) {
 				ret = Blockcipher_df(info->func, info->keyLen, add_input, addLen, additional_input_seed, info->seedLen);
-				if (ret == FAILURE) {
+				if (ret != success) {
 					HJCrypto_memset(additional_input_seed, 0, MAX_SEEDLEN_IN_BYTES);
 					goto EXIT;
 				}
 				ret = CTR_DRBG_update(additional_input_seed, info);
-				if (ret == FAILURE) {
+				if (ret != success) {
 					HJCrypto_memset(additional_input_seed, 0, MAX_SEEDLEN_IN_BYTES);
 					goto EXIT;
 				}
@@ -357,7 +358,7 @@ RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint
 				HJCrypto_memset(additional_input_seed, 0, MAX_SEEDLEN_IN_BYTES);
 				memcpy(additional_input_seed, add_input, addLen);
 				ret = CTR_DRBG_update(additional_input_seed, info);
-				if (ret == FAILURE) {
+				if (ret != success) {
 					HJCrypto_memset(additional_input_seed, 0, MAX_SEEDLEN_IN_BYTES);
 					goto EXIT;
 				}
@@ -368,7 +369,7 @@ RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint
 	}
 	else {
 		//ret = HJ_CTR_DRBG_Reseed
-		if (ret == FAILURE) {
+		if (ret != success) {
 			goto EXIT;
 		}
 		HJCrypto_memset(additional_input_seed, 0, MAX_SEEDLEN_IN_BYTES);
@@ -389,7 +390,7 @@ RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint
 	if (request_bitLen % 8 != 0)
 		output[request_Len - 1] = temp[request_Len - 1] & (0x000000FF & (0xFF << (8 - (request_bitLen % 8))));
 	ret = CTR_DRBG_update(additional_input_seed, info);
-	if (ret == FAILURE) {
+	if (ret != success) {
 		goto EXIT;
 	}
 	info->reseed_cnt++;
@@ -400,7 +401,7 @@ RET CTR_DRBG_Generate(DRBG* info, uint8_t* output, uint64_t request_bitLen, uint
 	ptr = NULL;
 	return ret;
 EXIT:
-	if (ret != SUCCESS) {
+	if (ret != success) {
 		HJCrypto_memset(info, 0, sizeof(DRBG));
 	}
 	if (temp != NULL) {

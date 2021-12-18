@@ -2,9 +2,9 @@
 #include "HJ_crypto.h"
 #include "SHA-2 core.h"
 
-RET HMAC_init(MAC* info, uint32_t func, const uint8_t* key, uint64_t keyLen)
+uint32_t HMAC_init(MAC* info, uint32_t func, const uint8_t* key, uint64_t keyLen)
 {
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	ret = HJCrypto_memset(info, 0, sizeof(MAC));
 	switch (func)
 	{
@@ -16,24 +16,24 @@ RET HMAC_init(MAC* info, uint32_t func, const uint8_t* key, uint64_t keyLen)
 			ret = SHA256_process(key, keyLen, &(info->hash_info));
 			ret = SHA256_final(&(info->hash_info), (info->key));
 			info->keyLen = HMAC_SHA256_DIGEST;
-			if (ret == FAILURE)
-				return ret;
-			info->keyupdate_state = FAILURE;
+			if (ret != success)
+				return FAIL_inner_func;
+			info->keyupdate_state = key_update_DONE;
 		}
 		else {
 			//keyLen < HMAC_SHA256_BLOCKBYTE
 			info->keyLen = keyLen;
 			memcpy(info->key, key, keyLen);
-			info->keyupdate_state = FAILURE;
+			info->keyupdate_state = key_update_DONE;
 		}
 		break;
 	default:
-		return ret;
+		return FAIL_inner_func;
 	}
 	return ret;
 }
 
-RET HMAC_process(MAC* info, const uint8_t* pt, uint64_t ptLen) {
+uint32_t HMAC_process(MAC* info, const uint8_t* pt, uint64_t ptLen) {
 	
 	//나중에 해시 함수 추가하면 해당 K1, K2 size 바꿔줘야 함
 	uint8_t K1[HMAC_SHA256_BLOCKBYTE];
@@ -41,7 +41,7 @@ RET HMAC_process(MAC* info, const uint8_t* pt, uint64_t ptLen) {
 	{
 	case HMAC_SHA256:
 		//update가 최초로 호출되어서 IPAD key에 대한 정보를 담아야하는 경우
-		if (info->keyupdate_state == FAILURE) {
+		if (info->keyupdate_state == key_update_DONE) {
 			memset(K1, 0x36, HMAC_SHA256_BLOCKBYTE);
 			for (int i = 0; i < info->keyLen; i++)
 				K1[i] = info->key[i] ^ K1[i];
@@ -49,7 +49,7 @@ RET HMAC_process(MAC* info, const uint8_t* pt, uint64_t ptLen) {
 			SHA256_init(&(info->hash_info));
 			SHA256_process(K1, HMAC_SHA256_BLOCKBYTE, &(info->hash_info));
 			SHA256_process(pt, ptLen, &(info->hash_info));
-			info->keyupdate_state = SUCCESS;
+			info->keyupdate_state = key_update_DONE;
 		}
 		//update가 메시지 추가를 위한 여러번 호출되어서 IPAD key에 대한 정보가 이미 포함되어 있는 경우
 		else {
@@ -57,18 +57,18 @@ RET HMAC_process(MAC* info, const uint8_t* pt, uint64_t ptLen) {
 		}
 		break;
 	default:
-		return FAILURE;
+		return FAIL_inner_func;
 		break;
 	}
-	RET ret = HJCrypto_memset(K1, 0, HMAC_SHA256_BLOCKBYTE);
+	uint32_t ret = HJCrypto_memset(K1, 0, HMAC_SHA256_BLOCKBYTE);
 	return ret;
 }
 
-RET HMAC_final(MAC* info, uint8_t* out) {
+uint32_t HMAC_final(MAC* info, uint8_t* out) {
 	//나중에 해시 함수 추가하면 해당 K1, K2 size 바꿔줘야 함
 	uint8_t K2[HMAC_SHA256_BLOCKBYTE];
 	uint8_t buf[HMAC_SHA256_DIGEST];
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	switch (info->func)
 	{
 	case HMAC_SHA256:

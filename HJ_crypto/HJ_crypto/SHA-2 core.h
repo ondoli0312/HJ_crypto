@@ -14,8 +14,8 @@
 #define BS1(x)				(ROTR32(x,  6) ^ ROTR32(x, 11) ^ ROTR32(x,  25))
 
 //SHA256-API/////////////////////////////////////////////////////////////////////////////////////////////
-RET SHA256_init(IN Hash* info);
-RET SHA256_process(IN const uint8_t* pt, IN uint64_t ptLen, IN Hash* info);
-RET SHA256_final(IN Hash* info, OUT uint8_t* out);
+uint32_t SHA256_init(IN Hash* info);
+uint32_t SHA256_process(IN const uint8_t* pt, IN uint64_t ptLen, IN Hash* info);
+uint32_t SHA256_final(IN Hash* info, OUT uint8_t* out);
 
 

@@ -47,7 +47,7 @@ static const unsigned int delta[8][36] = {
 	0xe5c40957,	0xcb8812af, 0x9710255f, 0x2e204abf}
 };
 
-RET LEA_roundkeyGen(LEA_KEY* key, const uint8_t* mk, uint32_t mk_len)
+uint32_t LEA_roundkeyGen(LEA_KEY* key, const uint8_t* mk, uint32_t mk_len)
 {
 	const uint32_t* _mk = (const uint32_t*)mk;
 	switch (mk_len)
@@ -533,15 +533,15 @@ RET LEA_roundkeyGen(LEA_KEY* key, const uint8_t* mk, uint32_t mk_len)
 		break;
 
 	default:
-		return FAILURE;
+		return FAIL_inner_func;
 	}
 	key->round = (mk_len >> 1) + 16;
-	return SUCCESS;
+	return success;
 }
 
-RET LEA_encryption(const uint8_t* pt, const LEA_KEY* key, uint8_t* ct)
+uint32_t LEA_encryption(const uint8_t* pt, const LEA_KEY* key, uint8_t* ct)
 {
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	unsigned int X0, X1, X2, X3;
 
 	const unsigned int* _pt = (const unsigned int*)pt;
@@ -667,13 +667,12 @@ RET LEA_encryption(const uint8_t* pt, const LEA_KEY* key, uint8_t* ct)
 	_ct[2] = loadU32(X2);
 	_ct[3] = loadU32(X3);
 	X0 = 0;	X1 = 0; X2 = 0; X3 = 0;
-	ret = SUCCESS;
 	return ret;
 }
 
-RET LEA_decryption(uint8_t* pt, const LEA_KEY* key, const uint8_t* ct)
+uint32_t LEA_decryption(uint8_t* pt, const LEA_KEY* key, const uint8_t* ct)
 {
-	RET ret = FAILURE;
+	uint32_t ret = success;
 	unsigned int X0, X1, X2, X3;
 	unsigned int* _pt = (unsigned int*)pt;
 	const unsigned int* _ct = (const unsigned int*)ct;
@@ -797,6 +796,5 @@ RET LEA_decryption(uint8_t* pt, const LEA_KEY* key, const uint8_t* ct)
 	_pt[1] = loadU32(X1);
 	_pt[2] = loadU32(X2);
 	_pt[3] = loadU32(X3);
-	ret = SUCCESS;
 	return ret;
 }
