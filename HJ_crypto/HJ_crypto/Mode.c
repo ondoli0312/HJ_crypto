@@ -5,14 +5,13 @@ blockCipher info;
 extern FUNC_TEST func_test_state;
 extern uint32_t HJCrypto_state;
 extern uint32_t _getState();
-void _Change_HJCrypto_state(uint32_t change);
+extern void _Change_HJCrypto_state(uint32_t change);
 
-uint32_t HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out) {
+__declspec(dllexport) uint32_t HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
 	uint64_t outLen = 0;
 	uint32_t state = _getState();
-
 	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
 		fprintf(stdout, "/////////////////////////////////////////////\n");
 		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
@@ -119,7 +118,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv) {
+__declspec(dllexport) uint32_t HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
 	uint32_t state = _getState();
@@ -211,7 +210,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
+__declspec(dllexport) uint32_t HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
 	uint32_t state = _getState();
@@ -291,7 +290,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_BlockCipher_final(uint8_t* out) {
+__declspec(dllexport) uint32_t HJCrypto_BlockCipher_final(uint8_t* out) {
 	uint32_t ret = success;
 	uint32_t p_flag = success;
 	uint32_t state = _getState();
@@ -371,7 +370,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_BlockCipher_Clear(void) {
+__declspec(dllexport) uint32_t HJCrypto_BlockCipher_Clear(void) {
 	uint32_t ret = success;
 	uint32_t state = _getState();
 

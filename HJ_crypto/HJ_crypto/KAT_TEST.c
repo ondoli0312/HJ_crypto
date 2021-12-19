@@ -268,23 +268,147 @@ EXIT:
 
 typedef struct {
 	uint32_t func;
-	uint32_t keyLen;
 	uint32_t PR_flag;
-	uint32_t DF_flag;
+	uint8_t* Entropy;
 	uint32_t EntropyLen;
+	uint8_t* Nonce;
 	uint32_t NonceLen;
+	uint8_t* per;
 	uint32_t perLen;
-	uint32_t AddLen;
-	uint32_t returnLen;
+	uint8_t* EntropyPR1;
+	uint8_t* EntropyPR2;
+	uint8_t* Add1;
+	uint8_t* Add2;
+	uint8_t* result;
+}USE_PR_HMAC_DRBG_TV;
+
+
+static const USE_PR_HMAC_DRBG_TV PR_test[] = {
+	{
+		HMAC_SHA256, USE_PR,
+		"BEB379284CBB8AB88D638FEE59F342ED5942AEE01879E7E05D19F718B9401B26",
+		32,
+		"5C2830C52CF068A9199F41ABAA66B826",
+		16,
+		"",
+		0,
+		"DC25B9A12D31DBAEF4554A11F31604252F3B497C008D4CC664DC2FF498422E9D",
+		"EAAC1BA0C9950A0B1E154D3BDF1BA345E0F6AC95ED1BA0D5172241114B110E18",
+		"",
+		"",
+		"355AA4C91433D5D72435C04D8F04DE11C5EE41E8D0E5EE6182A8951AC1D141F3446654A3266B689EAC6771797F5031E7F46F2E79BB50C0D7B97666B887758308FA55520D63C08B8C477FCD466B42E36B8F76CF6CFE7F3AF21BD02FA511CE5EB29641459140B513142E7EF9389DD2E3A4D3C20ADEA4EA86905CF994F1E263A300"
+	},
+
+	{
+		HMAC_SHA256, USE_PR,
+		"810E79F963D32A2174432F516A0C0E422D4B0394E64FACB8589F060D733E9849",
+		32,
+		"262DEE1B7632490FCDD895B194B79BF5",	//noce
+		16,									//noncelen
+		"",//per
+		0,
+		"BEE45544E13F32261170A017D1B96DFA87B84B0C8C3181C7840EE007EBA4F96C", //En1
+		"F1388DFF88C24518BBF0A37F416E39D152651925B9428CF02BB80726D7085AA2", //En2
+		"03F578D6380D4E3E87CF392612A985FE99241E4F93B1479F7DA68F957284015D", //AD1
+		"FC7B9C4E2A3003CAE2BD756679F9FE4B81FBEFDDE2D98D9A2DB506442CFBA942", //AD2
+		"65B18F859625E638B496BEC40ED7EFEF96CC7F4BBCBCFF64258BA5CA77F4A6AEA2DE91BEBA5F00164F6F2B6AFE8716ADAF4AD683581202BAC3C614E6B8DCA7B0688A00316AF514D6B7AFC5E5C7796FF04DCCF74624C6FF4EF3CDD7135858209F23670B9CF6949A245DDA06C033F8207DADFDCD8DECEF952F04080E17178E8CCA"
+	},
+
+	{
+		HMAC_SHA256, USE_PR,
+		"7145910782ACCB48308ABB1C0A4107227B9F1AA8F26A6CD53F3C032741913A21",
+		32,
+		"BE1FC13D9266E5280C87112E955995F3",	//noce
+		16,									//noncelen
+		"A1F6BEBDAF3ECD15519841753BF5147DE010E9D693FD4C68EC053ACD6EB1E405",//per
+		32,
+		"92BAA7658C23A7EE8E80A8EECF3E2B6891A52DFC49686515007AC763F9244C8C", //En1
+		"F148FD648C2B7BB09395FF218C07D367B8CCE93A3B881F937E14C11DD2894FE6", //En2
+		"6625B06B16AF81E713A03866EC5B7B870CABB597E25A5DC03FFF7C7DFF176951", //AD1
+		"EB57D7B9DE41125F27F686902F4B81F05C1E3A6D34EB1171C69A185C459BD331", //AD2
+		"ED5466F9569EC0EA7F63A120E322967A9734829D5E3181DE6DEC0F3A0FFCDBE30141A9C9129C03213AF3804FFADB8786125CD1E35DB05A5FAFD1581824875D8D"
+	},
+};
+
+void print_hex(char* s, uint8_t* arr, uint32_t size) {
+	printf("%s = ", s);
+	for (int i = 0; i < size; i++)
+		printf("%02X ", arr[i]);
+	printf("\n");
+}
+
+
+uint32_t HMAC_DRBG_SelfTest_API() {
 	uint8_t Entropy[512];
 	uint8_t Nonce[512];
-	uint8_t Per_string[512];
-	uint8_t	EN_reseed[512];
-	uint8_t AD_reseed[512];
-	uint8_t AD_input1[512];
-	uint8_t AD_input2[512];
-	uint8_t RB[512];
-}DRBG_TV;
+	uint8_t per[512];
+	uint8_t EntropyPR1[512];
+	uint8_t EntropyPR2[512];
+	uint8_t Add1[512];
+	uint8_t Add2[512];
+	uint8_t tv_result[512];
+	uint8_t HJ_result[512];
+	uint32_t EntropyLen = 0;
+	uint32_t EntropyPR1_Len = 0;
+	uint32_t EntropyPR2_Len = 0;
+	uint32_t NonceLen = 0;
+	uint32_t perLen = 0;
+	uint32_t Add1Len = 0;
+	uint32_t Add2Len = 0;
+	uint32_t resultLen = 0;
+	uint32_t i = 0;
+	uint32_t ret = success;
+	HJCrypto_memset(Entropy, 0, sizeof(Entropy));
+	HJCrypto_memset(Nonce, 0, sizeof(Nonce));
+	HJCrypto_memset(EntropyPR1, 0, sizeof(EntropyPR1));
+	HJCrypto_memset(EntropyPR2, 0, sizeof(EntropyPR2));
+	HJCrypto_memset(Add1, 0, sizeof(Add1));
+	HJCrypto_memset(Add2, 0, sizeof(Add2));
+	HJCrypto_memset(tv_result, 0, sizeof(tv_result));
+	HJCrypto_memset(HJ_result, 0, sizeof(HJ_result));
+	HJCrypto_memset(per, 0, sizeof(per));
+	for (i = 0; i < sizeof(PR_test[i]) / sizeof(USE_PR_HMAC_DRBG_TV); i++) {
+		EntropyLen = asci2hex(Entropy, PR_test[i].Entropy);
+		NonceLen = asci2hex(Nonce, PR_test[i].Nonce);
+		EntropyPR1_Len = asci2hex(EntropyPR1, PR_test[i].EntropyPR1);
+		EntropyPR2_Len = asci2hex(EntropyPR2, PR_test[i].EntropyPR2);
+		Add1Len = asci2hex(Add1, PR_test[i].Add1);
+		Add2Len = asci2hex(Add2, PR_test[i].Add2);
+		perLen = asci2hex(per, PR_test[i].per);
+		resultLen = asci2hex(tv_result, PR_test[i].result);
+		HJCrypto_HMAC_DRBG_Instantiate(PR_test[i].func, Entropy, EntropyLen, Nonce, NonceLen, per, perLen, PR_test[i].PR_flag);
+		HJCrypto_HMAC_DRBG_Generate(HJ_result, resultLen, EntropyPR1, EntropyPR1_Len, Add1, Add1Len, PR_test[i].PR_flag);
+		HJCrypto_HMAC_DRBG_Generate(HJ_result, resultLen, EntropyPR2, EntropyPR2_Len, Add2, Add2Len, PR_test[i].PR_flag);
+		if (memcmp(HJ_result, tv_result, resultLen)) {
+			ret = KAT_SELFTEST_FAILURE;
+			goto EXIT;
+		}
+	}
+	HJCrypto_memset(Entropy, 0, sizeof(Entropy));
+	HJCrypto_memset(Nonce, 0, sizeof(Nonce));
+	HJCrypto_memset(EntropyPR1, 0, sizeof(EntropyPR1));
+	HJCrypto_memset(EntropyPR2, 0, sizeof(EntropyPR2));
+	HJCrypto_memset(Add1, 0, sizeof(Add1));
+	HJCrypto_memset(Add2, 0, sizeof(Add2));
+	HJCrypto_memset(tv_result, 0, sizeof(tv_result));
+	HJCrypto_memset(HJ_result, 0, sizeof(HJ_result));
+	HJCrypto_memset(per, 0, sizeof(per));
+	return ret;
+EXIT:
+	if (ret != success) {
+		HJCrypto_memset(Entropy, 0, sizeof(Entropy));
+		HJCrypto_memset(Nonce, 0, sizeof(Nonce));
+		HJCrypto_memset(EntropyPR1, 0, sizeof(EntropyPR1));
+		HJCrypto_memset(EntropyPR2, 0, sizeof(EntropyPR2));
+		HJCrypto_memset(Add1, 0, sizeof(Add1));
+		HJCrypto_memset(Add2, 0, sizeof(Add2));
+		HJCrypto_memset(tv_result, 0, sizeof(tv_result));
+		HJCrypto_memset(HJ_result, 0, sizeof(HJ_result));
+		HJCrypto_memset(per, 0, sizeof(per));
+		ret = KAT_SELFTEST_FAILURE;
+		return ret;
+	}
+}
 
 uint32_t _KAT_SELF_TEST()
 {
@@ -294,6 +418,7 @@ uint32_t _KAT_SELF_TEST()
 		goto EXIT;
 	}
 	func_test_state.blockCipherTest = success;
+
 	ret = Hash_SelfTest_API();
 	if (ret != success) {
 		goto EXIT;
@@ -306,9 +431,15 @@ uint32_t _KAT_SELF_TEST()
 	}
 	func_test_state.HMACTest = success;
 
-	return success;
-EXIT:
+	ret = HMAC_DRBG_SelfTest_API();
 	if (ret != success) {
+		goto EXIT;
+	}
+	func_test_state.DRBGTest = success;
+	return ret;
+EXIT:
+	if (ret != success){
+		ret = FAIL_critical;
 		return ret;
 	}
 }

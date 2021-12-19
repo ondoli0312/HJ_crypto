@@ -141,8 +141,10 @@
   <ItemGroup>
     <ClCompile Include="DRBG core.c" />
     <ClCompile Include="DRBG.c" />
+    <ClCompile Include="Entropy.c" />
     <ClCompile Include="HJ_crypto.c" />
     <ClCompile Include="HMAC-core.c" />
+    <ClCompile Include="integrity.c" />
     <ClCompile Include="KAT_TEST.c" />
     <ClCompile Include="LEA core.c" />
     <ClCompile Include="main.c" />
@@ -150,14 +152,15 @@
     <ClCompile Include="Mode.c" />
     <ClCompile Include="SHA-256 core.c" />
     <ClCompile Include="hash.c" />
-    <ClCompile Include="src.c" />
-    <ClCompile Include="src_test.c" />
+    <ClCompile Include="CAVP.c" />
     <ClCompile Include="MAC.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DRBG.h" />
+    <ClInclude Include="Entropy.h" />
     <ClInclude Include="HJ_crypto.h" />
     <ClInclude Include="HMAC-SHA.h" />
+    <ClInclude Include="integrity.h" />
     <ClInclude Include="KAT_TEST.h" />
     <ClInclude Include="LEA.h" />
     <ClInclude Include="mode core.h" />

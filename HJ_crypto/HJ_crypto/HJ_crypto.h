@@ -17,8 +17,9 @@ enum HJCrypto_RESULT {
 	FAIL_katselp_test,
 	FAIL_critical,
 	FAIL_integrity_test,
+	FAIL_entropy_test,
 	NOT_katselp_testing,
-
+	FAIL_PERS_LEN_MAX,
 };
 
 enum HJCrypto_state_num {
@@ -26,6 +27,7 @@ enum HJCrypto_state_num {
 	HJ_NORMAL,
 	HJ_preSELF_test,
 	HJ_condition_test,
+	HJ_Entropy_test,
 	HJ_normal_err,
 	HJ_critical_err,
 	HJ_exit
@@ -90,11 +92,11 @@ enum {
 	DECRYPTION
 };
 
-uint32_t  HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out);
-uint32_t  HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv);
-uint32_t  HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen);
-uint32_t  HJCrypto_BlockCipher_final(uint8_t* out);
-uint32_t  HJCrypto_BlockCipher_Clear(void);
+__declspec(dllexport) uint32_t  HJCrypto_BlockCipher(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* in, uint64_t ptLen, const uint8_t* iv, uint8_t* out);
+__declspec(dllexport) uint32_t  HJCrypto_BlockCipher_init(uint32_t Enc, uint32_t mode, uint32_t type, const* masterkey, uint32_t keyLen, const uint8_t* iv);
+__declspec(dllexport) uint32_t  HJCrypto_BlockCipher_Update(const uint8_t* in, uint64_t ptLen, uint8_t* out, uint64_t* outLen);
+__declspec(dllexport) uint32_t  HJCrypto_BlockCipher_final(uint8_t* out);
+__declspec(dllexport) uint32_t  HJCrypto_BlockCipher_Clear(void);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,10 +119,10 @@ typedef struct {
 enum {
 	sha256 = 0x14000000
 };
-uint32_t HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest);
-uint32_t HJCrypto_Hash_init(uint32_t Func);
-uint32_t HJCrypto_Hash_process(const uint8_t* pt, uint64_t ptLen);
-uint32_t HJCrypto_Hash_final(uint8_t* Digest);
+__declspec(dllexport) uint32_t HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest);
+__declspec(dllexport) uint32_t HJCrypto_Hash_init(uint32_t Func);
+__declspec(dllexport) uint32_t HJCrypto_Hash_process(const uint8_t* pt, uint64_t ptLen);
+__declspec(dllexport) uint32_t HJCrypto_Hash_final(uint8_t* Digest);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,10 +144,10 @@ enum {
 	HMAC_SHA256 = 0x15000000
 };
 
-uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out);
-uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen);
-uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen);
-uint32_t HJCrypto_HMAC_final(uint8_t* out);
+__declspec(dllexport) uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out);
+__declspec(dllexport) uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen);
+__declspec(dllexport) uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen);
+__declspec(dllexport) uint32_t HJCrypto_HMAC_final(uint8_t* out);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,32 +169,55 @@ typedef struct {
 	uint32_t prediction_res_flag;
 }DRBG;
 
+typedef struct {
+	uint32_t func;		//HMAC_DRBG
+	int32_t EntropyLen;
+	int32_t NonceLen;
+	int32_t PerLen;
+	int32_t reseed_counter;
+	int32_t addLen;
+	uint32_t PR_flag;
+	uint8_t key[SHA256_DIGEST_LEN];
+	uint8_t V[SHA256_DIGEST_LEN];
+	uint32_t DigestLen;
+}HMAC_DRBG;
+
 enum {
-	USE_DF = 0x16000000,
-	USE_PR,
-	NO_DF,
+	USE_PR = 0x16000000,
 	NO_PR
 };
-uint32_t HJCrypto_CTR_DRBG_Instantiate(
-	uint32_t func, uint32_t keyLen,
-	uint8_t* entropy, uint32_t entropyLen,
-	uint8_t* nonce, uint32_t nonceLen,
-	uint8_t* per_string, uint32_t perLen,
-	uint32_t derivation_funcFlag);
 
-uint32_t HJCrypto_CTR_DRBG_Reseed(
-	DRBG* info,
-	uint8_t* entropy, uint32_t entropyLen,
-	uint8_t* add_input, uint32_t addLen);
+__declspec(dllexport) uint32_t HJCrypto_HMAC_DRBG_Instantiate(
+	uint32_t func,
+	uint8_t* Entropy, uint32_t EntropyLen,
+	uint8_t* Nonce, uint32_t NonceLen,
+	uint8_t* per_s, uint32_t PerLen,
+	uint32_t PR_flag
+);
 
-uint32_t HJCrypto_CTR_DRBG_Generate(
-	DRBG* info,
-	uint8_t* output, uint64_t req_bitLen, uint8_t* entropy, uint32_t entropyLen,
-	uint8_t* add_input, uint32_t addLen, uint32_t prediction_resFlag);
+__declspec(dllexport) uint32_t HJCrypto_HMAC_DRBG_Reseed(
+	uint8_t* Entropy, uint32_t EntropyLen,
+	uint8_t* add, uint32_t addLen
+);
+
+__declspec(dllexport) uint32_t HJCrypto_HMAC_DRBG_Generate(
+	uint8_t* out, uint32_t outLen,
+	uint8_t* Entropy, uint8_t* EntropyLen,
+	uint8_t* add, uint8_t* addLen,
+	uint32_t PR_flag
+);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t HMAC_DRBG_SelfTest_API();
 
 //Self-Testing API
+uint32_t _DRBG_using(uint8_t* Entropy, uint32_t inLen, uint32_t flag);
 
+//CAVP
+void LEA_CTR_MCT();
+void LEA_CTR_KAT();
+void LEA_CTR_MMT();
+void HMAC_DBBG_CAVP();

@@ -1,206 +1,308 @@
 #include "HJ_crypto.h"
 #include "DRBG.h"
-DRBG info;
 
-uint32_t HJCrypto_CTR_DRBG_Instantiate(
-	uint32_t func, uint32_t keyLen,
-	uint8_t* entropy, uint32_t entropyLen,
-	uint8_t* nonce, uint32_t nonceLen,
-	uint8_t* per_string, uint32_t perLen,
-	uint32_t derivation_funcFlag)
+static HMAC_DRBG info;
+extern FUNC_TEST func_test_state;
+extern uint32_t HJCrypto_state;
+extern uint32_t _getState();
+extern void _Change_HJCrypto_state(uint32_t change);
+
+__declspec(dllexport) uint32_t HJCrypto_HMAC_DRBG_Instantiate(
+	uint32_t func, 
+	uint8_t* Entropy,		uint32_t EntropyLen,
+	uint8_t* Nonce,			uint32_t NonceLen,
+	uint8_t* per_s,			uint32_t PerLen,
+	uint32_t PR_flag
+)
 {
 	uint32_t ret = success;
-	uint32_t pFlag = success;
-	HJCrypto_memset(&info, 0, sizeof(DRBG));
+	uint32_t p_flag = success;
+	uint32_t state = _getState();
 
-	//parameter Check
-	if ((func != LEA)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if ((keyLen != 16) && (keyLen != 24) && (keyLen != 32)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if (nonce != NULL && (nonceLen < (keyLen >> 1))) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if (((per_string != NULL) && (perLen > (MAX_PER_STRING_LEN >> 3))) || (perLen < 0)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	switch (derivation_funcFlag)
-	{
-	case USE_DF:
-		if (((entropy != NULL) && (entropyLen < keyLen)) || (entropyLen > MAX_ENTROPY_LEN)) {
-			pFlag = FAIL_invaild_paramter;
-			goto PERR;
-		}
-		break;
-	case NO_DF:
-		if ((entropy != NULL) || (entropyLen < (BLOCKSIZE + keyLen)) || (entropyLen > MAX_ENTROPY_LEN)) {
-			pFlag = FAIL_invaild_paramter;
-			goto PERR;
-		}
-		break;
-	default:
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-		break;
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	:HMAC_DRBG_Instantiate	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
 	}
 
-	if (entropy == NULL) {
-		uint8_t* entropy_buf = NULL;
-		uint32_t entropy_bufLen = MAX_ENTROPY_LEN;
-		entropy_buf = (uint8_t*)malloc(entropy_buf, entropy_bufLen);
-		HJCrypto_memset(entropy_buf, 0, entropy_bufLen);
-		ret = CTR_DRBG_Instantiate(&info, func, keyLen, entropy_buf, entropy_bufLen, nonce, nonceLen, per_string, perLen, derivation_funcFlag);
-		if (ret != success)
+	if ((state != HJ_preSELF_test) && (func_test_state.DRBGTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//	[Location]	: HJCrypto_HMAC_DRBG_Instantiate//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+
+	if (func != HMAC_SHA256) {
+		p_flag = FAIL_invaild_paramter;
+		goto PERR;
+	}
+	if ((PR_flag != USE_PR) && (PR_flag != NO_PR)) {
+		p_flag = FAIL_invaild_paramter;
+		goto PERR;
+	}
+	if (((Nonce == NULL) && (NonceLen != 0))) {
+		p_flag = FAIL_invaild_paramter;
+		goto PERR;
+	}
+	if (((per_s == NULL) && (PerLen != 0)) || (PerLen > (MAX_PER_STRING_LEN >> 3)) ) {
+		p_flag = FAIL_PERS_LEN_MAX;
+		goto PERR;
+	}
+	if (EntropyLen == 0) {
+		uint8_t getEntropy[MAX_ENTROPY_LEN];
+		_Change_HJCrypto_state(HJ_Entropy_test);
+		ret = _DRBG_using(getEntropy, MAX_ENTROPY_LEN, 0);
+		if (ret != success) {
+			HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
 			goto EXIT;
-		ret = HJCrypto_memset(entropy_buf, 0, entropy_bufLen);
-		free(entropy_buf);
-		entropy_bufLen = 0;
+		}
+		_Change_HJCrypto_state(HJ_NORMAL);
+		ret = HMAC_DRBG_instantiate(&info, func, getEntropy, MAX_ENTROPY_LEN, Nonce, NonceLen, per_s, PerLen, PR_flag);
+		if (ret != success) {
+			HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
+			goto EXIT;
+		}
+		HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
 	}
 	else {
-		ret = CTR_DRBG_Instantiate(&info, func, keyLen, entropy, entropyLen, nonce, nonceLen, per_string, perLen, derivation_funcFlag);
-		if (ret!= success)
+		ret = HMAC_DRBG_instantiate(&info, func, Entropy, EntropyLen, Nonce, NonceLen, per_s, PerLen, PR_flag);
+		if (ret != success)
+			goto EXIT;
+	}
+	return ret;
+PERR:
+	_Change_HJCrypto_state(HJ_normal_err);
+	fprintf(stdout, "/////////////////////////////////////////////\n");
+	fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter[or]//\n");
+	fprintf(stdout, "//		[*] state	: FAIL_PERS_LEN_MAX		//\n");
+	fprintf(stdout, "//		[Location]	: HMAC_DRBG_Instantiate	//\n");
+	fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+	fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+	fprintf(stdout, "/////////////////////////////////////////////\n\n");
+	_Change_HJCrypto_state(HJ_NORMAL);
+	HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+	return p_flag;
+EXIT:
+	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: HJCrypto_HMAC			//\n");
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+		HJCrypto_Finish();
+	}
+}
+
+__declspec(dllexport) uint32_t HJCrypto_HMAC_DRBG_Reseed(
+	uint8_t* Entropy, uint32_t EntropyLen,
+	uint8_t* add, uint32_t addLen
+)
+{
+	uint32_t ret = success;
+	uint32_t p_flag = success;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	:HMAC_DRBG_Reseed		//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if ((state != HJ_preSELF_test) && (func_test_state.DRBGTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	:HMAC_DRBG_Reseed		//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
+	}
+
+	if (((add == NULL) && (addLen != 0)) || (addLen > (MAX_ADD_INPUT_LEN >> 3))) {
+		p_flag = FAIL_invaild_paramter;
+		goto PERR;
+	}
+
+	if (((Entropy == NULL) && (EntropyLen != 0)) || (EntropyLen > MAX_ENTROPY_LEN)) {
+		p_flag = FAIL_invaild_paramter;
+		goto PERR;
+	}
+	if (EntropyLen == 0) {
+		uint8_t getEntropy[MAX_ENTROPY_LEN];
+		_Change_HJCrypto_state(HJ_Entropy_test);
+		ret = _DRBG_using(getEntropy, MAX_ENTROPY_LEN, 0);
+		if (ret != success) {
+			HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
+			goto EXIT;
+		}
+		_Change_HJCrypto_state(HJ_NORMAL);
+		ret = HMAC_DRBG_reseed(&info, getEntropy, MAX_ENTROPY_LEN, add, addLen);
+		if (ret != success) {
+			HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
+			goto EXIT;
+		}
+		HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
+	}
+	else {
+		ret = HMAC_DRBG_reseed(&info, Entropy, EntropyLen, add, addLen);
+		if (ret != success)
 			goto EXIT;
 	}
 	return ret;
 
 PERR:
-	//파라미터 오류 리턴하게 바꿔야함
-	if (pFlag != success) {
-		HJCrypto_memset(&info, 0, sizeof(DRBG));
-		return pFlag;
-	}
-
+	_Change_HJCrypto_state(HJ_normal_err);
+	fprintf(stdout, "/////////////////////////////////////////////\n");
+	fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter[or]//\n");
+	fprintf(stdout, "//		[*] state	: MAX_ADD_INPUT_LEN		//\n");
+	fprintf(stdout, "//		[Location]	: HMAC_DRBG_Reseed		//\n");
+	fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+	fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+	fprintf(stdout, "/////////////////////////////////////////////\n\n");
+	_Change_HJCrypto_state(HJ_NORMAL);
+	HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+	return p_flag;
 EXIT:
 	if (ret != success) {
-		//심각한 오류 리턴하게 바꿔야함
-		HJCrypto_memset(&info, 0, sizeof(DRBG));
-		ret = FAIL_critical;
+		fprintf(stdout, "//		[Location]	: HMAC_DRBG_Reseed		//\n");
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+		HJCrypto_Finish();
+	}
+}
+
+__declspec(dllexport) uint32_t HJCrypto_HMAC_DRBG_Generate(
+	uint8_t* out, uint32_t outLen,
+	uint8_t* Entropy, uint8_t* EntropyLen,
+	uint8_t* add, uint8_t* addLen,
+	uint32_t PR_flag
+)
+{
+	uint32_t ret = success;
+	uint32_t p_flag = success;
+	uint32_t state = _getState();
+
+	if ((state != HJ_NORMAL) && (state != HJ_preSELF_test)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not normal state		//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	: HMAC_DRBG_Generate	//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
 		return ret;
 	}
 
-}
-
-uint32_t HJCrypto_CTR_DRBG_Reseed(
-	DRBG* info,
-	uint8_t* entropy, uint32_t entropyLen,
-	uint8_t* add_input, uint32_t addLen)
-{
-	uint32_t ret = success;
-	uint32_t pFlag = success;
-
-	//check Parameter Check
-	if (((add_input != NULL) && (addLen > (MAX_ADD_INPUT_LEN >> 3))) || addLen < 0) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if ((((entropy != NULL) && ((entropyLen < info->keyLen))) || (entropyLen) > (MAX_ENTROPY_LEN << 3))) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if (info->init_flag != DRBG_INIT_FLAG) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
+	if ((state != HJ_preSELF_test) && (func_test_state.DRBGTest != success)) {
+		fprintf(stdout, "/////////////////////////////////////////////\n");
+		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
+		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
+		fprintf(stdout, "//		[Location]	:HMAC_DRBG_Reseed		//\n");
+		fprintf(stdout, "//		[*] state	: Change critical_err	//\n");
+		fprintf(stdout, "/////////////////////////////////////////////\n\n");
+		ret = FAIL_invaild_state;
+		HJCrypto_memset(&info, 0, sizeof(blockCipher));
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_Finish();
+		return ret;
 	}
 
-	if (entropy == NULL) {
-		uint8_t* entropy_buf = NULL;
-		uint32_t entropy_bufLen = MAX_ENTROPY_LEN;
-		entropy_buf = (uint8_t*)malloc(entropy_buf, entropy_bufLen);
-		HJCrypto_memset(entropy_buf, 0, entropy_bufLen);
-		ret = CTR_DRBG_Reseed(&info, entropy_buf, entropy_bufLen, add_input, addLen);
-		if (ret != success)
+	if ((out == NULL) && (outLen != 0)) {
+		p_flag = FAIL_invaild_paramter;
+		
+		goto PERR;
+		
+	}
+
+	if (PR_flag != USE_PR && PR_flag != NO_PR) {
+		p_flag = FAIL_invaild_paramter;
+	
+		goto PERR;
+		
+	}
+	if (((add == NULL) && (addLen != 0)) || (addLen > (MAX_ADD_INPUT_LEN >> 3))) {
+		p_flag = FAIL_invaild_paramter;
+		
+		goto PERR;
+	}
+
+	if (((Entropy == NULL) && (EntropyLen != 0)) || (EntropyLen > MAX_ENTROPY_LEN)) {
+		p_flag = FAIL_invaild_paramter;
+		goto PERR;
+	}
+
+	if (EntropyLen == 0) {
+		uint8_t getEntropy[MAX_ENTROPY_LEN];
+		_Change_HJCrypto_state(HJ_Entropy_test);
+		ret = _DRBG_using(getEntropy, MAX_ENTROPY_LEN, 0);
+		if (ret != success) {
+			HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
 			goto EXIT;
-		ret = HJCrypto_memset(entropy_buf, 0, entropy_bufLen);
-		free(entropy_buf);
-		entropy_bufLen = 0;
+		}
+		_Change_HJCrypto_state(HJ_NORMAL);
+		ret = HMAC_DRBG_Generate(&info, out, outLen, getEntropy, MAX_ENTROPY_LEN, add, addLen, PR_flag);
+		if (ret != success) {
+			HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
+			goto EXIT;
+		}
+		HJCrypto_memset(getEntropy, 0, MAX_ENTROPY_LEN);
 	}
-	else
-	{
-		ret = CTR_DRBG_Reseed(&info, entropy, entropyLen, add_input, addLen);
+	else {
+		ret = HMAC_DRBG_Generate(&info, out, outLen, Entropy, EntropyLen, add, addLen, PR_flag);
 		if (ret != success) {
 			goto EXIT;
 		}
 	}
 	return ret;
-
 PERR:
-	//파라미터 오류 정의로 바꿔야하함
-	if (pFlag != success) {
-		HJCrypto_memset(&info, 0, sizeof(DRBG));
-		return pFlag;
-	}
+	_Change_HJCrypto_state(HJ_normal_err);
+	fprintf(stdout, "/////////////////////////////////////////////\n");
+	fprintf(stdout, "//		[*] state	: FAIL_invaild_paramter[or]//\n");
+	fprintf(stdout, "//		[Location]	: HJ_HMAC_DRBG_Generate	//\n");
+	fprintf(stdout, "//		[*] state	: Change Normal Err		//\n");
+	fprintf(stdout, "//		[*] state	: Change Normal Mode	//\n");
+	fprintf(stdout, "/////////////////////////////////////////////\n\n");
+	_Change_HJCrypto_state(HJ_NORMAL);
+	HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+	return p_flag;
 EXIT:
 	if (ret != success) {
-		//심각한 오류로 바꿔야하함]
-		HJCrypto_memset(&info, 0, sizeof(DRBG));
-		ret = FAIL_critical;
-		return ret;
-	}
-}
-
-uint32_t HJCrypto_CTR_DRBG_Generate(
-	DRBG* info,
-	uint8_t* output, uint64_t req_bitLen, uint8_t* entropy, uint32_t entropyLen,
-	uint8_t* add_input, uint32_t addLen, uint32_t prediction_resFlag)
-{
-	uint32_t ret = success;
-	uint32_t pFlag = success;
-
-	//Check Parameters
-	if ((output == NULL) || (req_bitLen < 0) || ((req_bitLen >> 3) > MAX_RAND_BYTE_LEN)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if ((prediction_resFlag != USE_PR) && (prediction_resFlag != NO_PR)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if (((add_input != NULL) && (addLen > (MAX_ADD_INPUT_LEN >> 3))) || (addLen < 0)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if (((entropy != NULL) && (entropyLen < info->keyLen)) || (entropyLen > MAX_ENTROPY_LEN)) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-	if (info->init_flag != DRBG_INIT_FLAG) {
-		pFlag = FAIL_invaild_paramter;
-		goto PERR;
-	}
-
-	if ((entropy == NULL) && (prediction_resFlag == USE_PR)) {
-		uint8_t* entropy_buf = NULL;
-		uint32_t entropy_bufLen = MAX_ENTROPY_LEN;
-		entropy_buf = (uint8_t*)malloc(entropy_buf, entropy_bufLen);
-		HJCrypto_memset(entropy_buf, 0, entropy_bufLen);
-		ret = CTR_DRBG_Generate(&info, output, req_bitLen, entropy_buf, entropy_bufLen, add_input, addLen, prediction_resFlag);
-		if (ret != success)
-			goto EXIT;
-		ret = HJCrypto_memset(entropy_buf, 0, entropy_bufLen);
-		free(entropy_buf);
-		entropy_bufLen = 0;
-	}
-	else {
-		ret = CTR_DRBG_Generate(info, output, req_bitLen, entropy, entropyLen, add_input, addLen, prediction_resFlag);
-		if (ret != success)
-			goto EXIT;
-	}
-	return ret;
-PERR:
-	if (pFlag != success) {
-		HJCrypto_memset(&info, 0, sizeof(DRBG));
-		return pFlag;
-	}
-EXIT:
-	if (ret != success) {
-		HJCrypto_memset(&info, 0, sizeof(DRBG));
-		ret = FAIL_critical;
-		return ret;
+		fprintf(stdout, "//		[Location]	: HMAC_DRBG_Generate	//\n");
+		_Change_HJCrypto_state(HJ_critical_err);
+		HJCrypto_memset(&info, 0, sizeof(HMAC_DRBG));
+		HJCrypto_Finish();
 	}
 }

@@ -1,6 +1,6 @@
 #include "HJ_crypto.h"
 #include "KAT_TEST.h"
-
+#include "integrity.h"
 FUNC_TEST func_test_state;
 uint32_t HJCrypto_state = HJ_LOAD;
 
@@ -8,22 +8,6 @@ uint32_t _getState() {
 	return HJCrypto_state;
 }
 
-static uint32_t _preSelf_test() {
-	uint32_t ret = success;
-	HJCrypto_memset(&func_test_state, 0, sizeof(FUNC_TEST));
-	func_test_state.blockCipherTest = NOT_katselp_testing;
-	func_test_state.HashTest = NOT_katselp_testing;
-	func_test_state.HMACTest = NOT_katselp_testing;
-	func_test_state.DRBGTest = NOT_katselp_testing;
-
-	ret = _KAT_SELF_TEST();
-	if (ret != success) {
-		fprintf(stdout, "//		[Location]	: _KAT_SELF_TEST		//\n");
-		goto EXIT;
-	}
-EXIT:
-	return ret;
-}
 
 void _Change_HJCrypto_state(uint32_t change) {
 	switch (change)
@@ -52,6 +36,39 @@ void _Change_HJCrypto_state(uint32_t change) {
 	default:
 		break;
 	}
+}
+
+static uint32_t _preSelf_test() {
+	uint32_t ret = success;
+	HJCrypto_memset(&func_test_state, 0, sizeof(FUNC_TEST));
+	func_test_state.blockCipherTest = NOT_katselp_testing;
+	func_test_state.HashTest = NOT_katselp_testing;
+	func_test_state.HMACTest = NOT_katselp_testing;
+	func_test_state.DRBGTest = NOT_katselp_testing;
+
+	//KAT Test
+	ret = _KAT_SELF_TEST();
+	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: _KAT_SELF_TEST		//\n");
+		goto EXIT;
+	}
+
+	//Entropy Test
+	ret = _DRBG_using(NULL, 0, 1);
+	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: _DRBG_using		//\n");
+		goto EXIT;
+	}
+
+	/*ret = _integrity_test();
+	if (ret != success) {
+		fprintf(stdout, "//		[Location]	: _integrity_test		//\n");
+		goto EXIT;
+	}*/
+	_Change_HJCrypto_state(HJ_NORMAL);
+EXIT:
+	HJCrypto_Finish();
+	return ret;
 }
 
 uint32_t HJCrypto_memset(void* pointer, uint32_t value, uint32_t size)
@@ -152,9 +169,9 @@ uint32_t HJCrypto_preSelf_Test() {
 void HJCrypto_Info() {
 	if (_getState() != HJ_NORMAL) {
 		fprintf(stdout, "/////////////////////////////////////////////\n");
-		fprintf(stdout, "//		[*] state	: Not normal state	[or]//\n");
-		fprintf(stdout, "//		[Location] : _getState				//\n");
-		fprintf(stdout, "//		[*] : Reset HJCrypto_module			//\n");
+		fprintf(stdout, "//	[*] state	: Not normal state	[or]//\n");
+		fprintf(stdout, "//	[Location] : _getState				//\n");
+		fprintf(stdout, "//	[*] : Reset HJCrypto_module			//\n");
 		fprintf(stdout, "/////////////////////////////////////////////\n");
 		return;
 	}
@@ -171,11 +188,11 @@ void HJCrypto_Load()
 	_Change_HJCrypto_state(HJ_LOAD);
 	_Change_HJCrypto_state(HJ_preSELF_test);
 	fprintf(stdout, "/////////////////////////////////////////////\n");
-	fprintf(stdout, "//		[*] state	: HJCrypto_Load success	//\n");
-	fprintf(stdout, "//		[*] state	: HJCrypto_preSelf_Test //\n");
-	fprintf(stdout, "//		[*] state	: _preSelf_Testing..... //\n");
+	fprintf(stdout, "//[*] state	: HJCrypto_Load success	/////\n");
+	fprintf(stdout, "//[*] state	: HJCrypto_preSelf_Test /////\n");
+	fprintf(stdout, "//[*] state	: _preSelf_Testing..... /////\n");
 	ret = _KAT_SELF_TEST();
-
+	_Change_HJCrypto_state(HJ_NORMAL);
 
 	if (ret != success) {
 		fprintf(stdout, "//		[Location] : HJCrypto_Load			//\n");
@@ -185,15 +202,15 @@ void HJCrypto_Load()
 		goto EXIT;
 	}
 	else {
-		fprintf(stdout, "//		[*] state	: _preSelf_success		//\n");
+		fprintf(stdout, "//[*] state	: _preSelf_success //////////\n");
 		fprintf(stdout, "/////////////////////////////////////////////\n");
-		fprintf(stdout, "//		[*] state	: HJCrypto_init			//\n");
+		fprintf(stdout, "//[*] state	: HJCrypto_init	/////////////\n");
 		fprintf(stdout, "//////////////Support Algorithm//////////////\n");
-		fprintf(stdout, "//		[BlockCipher] : LEA(ECB, CTR)		//\n");
-		fprintf(stdout, "//		[Hash		] : SHA-256				//\n");
-		fprintf(stdout, "//		[MAC		] : HMAC-SHA-256		//\n");
-		fprintf(stdout, "//		[DRBG		] : CTR-DRBG(LEA)		//\n");
-		fprintf(stdout, "//		[*] state	: HJ_NORMAL				//\n");
+		fprintf(stdout, "//[BlockCipher	] : LEA(ECB, CTR)	/////\n");
+		fprintf(stdout, "//[Hash		] : SHA-256		/////\n");
+		fprintf(stdout, "//[MAC		] : HMAC-SHA-256	/////\n");
+		fprintf(stdout, "//[DRBG		] : CTR-DRBG(LEA)	/////\n");
+		fprintf(stdout, "//[*] state	: HJ_NORMAL		/////\n");
 		fprintf(stdout, "/////////////////////////////////////////////\n");
 		_Change_HJCrypto_state(HJ_NORMAL);
 	}

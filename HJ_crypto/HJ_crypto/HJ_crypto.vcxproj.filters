@@ -34,6 +34,12 @@
     <Filter Include="소스 파일\KAT">
       <UniqueIdentifier>{eaf5e187-a8b9-4930-b646-a6b8c39b7d0f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\integrity">
+      <UniqueIdentifier>{ca9fbc56-9a27-4781-9622-b8dcbe4e3215}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Entropy">
+      <UniqueIdentifier>{9a065c8e-79c1-4a6a-acc2-51a95c87b41f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -45,9 +51,6 @@
     <ClCompile Include="LEA core.c">
       <Filter>소스 파일\LEA</Filter>
     </ClCompile>
-    <ClCompile Include="src.c">
-      <Filter>소스 파일\src</Filter>
-    </ClCompile>
     <ClCompile Include="hash.c">
       <Filter>소스 파일\SHA-2 Family</Filter>
     </ClCompile>
@@ -56,9 +59,6 @@
     </ClCompile>
     <ClCompile Include="HMAC-core.c">
       <Filter>소스 파일\HMAC</Filter>
-    </ClCompile>
-    <ClCompile Include="src_test.c">
-      <Filter>소스 파일\src</Filter>
     </ClCompile>
     <ClCompile Include="Mode.c">
       <Filter>소스 파일\Mode</Filter>
@@ -76,6 +76,15 @@
       <Filter>소스 파일\KAT</Filter>
     </ClCompile>
     <ClCompile Include="HJ_crypto.c">
+      <Filter>소스 파일\src</Filter>
+    </ClCompile>
+    <ClCompile Include="integrity.c">
+      <Filter>소스 파일\integrity</Filter>
+    </ClCompile>
+    <ClCompile Include="Entropy.c">
+      <Filter>소스 파일\Entropy</Filter>
+    </ClCompile>
+    <ClCompile Include="CAVP.c">
       <Filter>소스 파일\src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -100,6 +109,12 @@
     </ClInclude>
     <ClInclude Include="KAT_TEST.h">
       <Filter>소스 파일\KAT</Filter>
+    </ClInclude>
+    <ClInclude Include="integrity.h">
+      <Filter>소스 파일\integrity</Filter>
+    </ClInclude>
+    <ClInclude Include="Entropy.h">
+      <Filter>소스 파일\Entropy</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

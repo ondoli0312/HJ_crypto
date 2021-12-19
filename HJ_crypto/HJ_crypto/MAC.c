@@ -1,13 +1,13 @@
 #include "HJ_crypto.h"
 #include "HMAC-SHA.h"
 
-MAC info;
+static MAC info;
 extern FUNC_TEST func_test_state;
 extern uint32_t HJCrypto_state;
 extern uint32_t _getState();
-void _Change_HJCrypto_state(uint32_t change);
+extern void _Change_HJCrypto_state(uint32_t change);
 
-uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out){
+__declspec(dllexport) uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const uint8_t* pt, uint64_t ptLen, uint8_t* out){
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();
@@ -26,7 +26,7 @@ uint32_t HJCrypto_HMAC(uint32_t func, const uint8_t* key, uint64_t keyLen, const
 		return ret;
 	}
 
-	if ((state != HJ_preSELF_test) && (func_test_state.blockCipherTest != success)) {
+	if ((state != HJ_preSELF_test) && (func_test_state.HMACTest != success)) {
 		fprintf(stdout, "/////////////////////////////////////////////\n");
 		fprintf(stdout, "//		[*] state	: Not perform KAT Test	//\n");
 		fprintf(stdout, "//		[*] Reset	: HJCrypto_module		//\n");
@@ -91,7 +91,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen) {
+__declspec(dllexport) uint32_t HJCrypto_HMAC_init(uint32_t func, const uint8_t* key, uint64_t keyLen) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();
@@ -168,7 +168,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen) {
+__declspec(dllexport) uint32_t HJCrypto_HMAC_process(const uint8_t* pt, uint64_t ptLen) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();
@@ -241,7 +241,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_HMAC_final(uint8_t* out) {
+__declspec(dllexport) uint32_t HJCrypto_HMAC_final(uint8_t* out) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();

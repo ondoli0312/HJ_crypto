@@ -5,9 +5,9 @@ Hash info;
 extern FUNC_TEST func_test_state;
 extern uint32_t HJCrypto_state;
 extern uint32_t _getState();
-void _Change_HJCrypto_state(uint32_t change);
+extern void _Change_HJCrypto_state(uint32_t change);
 
-uint32_t HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest) {
+__declspec(dllexport) uint32_t HJCrypto_Hash(uint32_t Func, const uint8_t* pt, uint64_t ptLen, uint8_t* Digest) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();
@@ -94,7 +94,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_Hash_init(uint32_t Func) {
+__declspec(dllexport) uint32_t HJCrypto_Hash_init(uint32_t Func) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();
@@ -230,7 +230,7 @@ EXIT:
 	}
 }
 
-uint32_t HJCrypto_Hash_final(uint8_t* Digest) {
+__declspec(dllexport) uint32_t HJCrypto_Hash_final(uint8_t* Digest) {
 	uint32_t p_flag = success;
 	uint32_t ret = success;
 	uint32_t state = _getState();
